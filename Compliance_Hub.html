@@ -1,0 +1,2083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Compliance Hub — Caring Companions</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy:#0E3860; --yellow:#FFC671; --teal:#54BDB8;
+  --bg:#F6F9FD; --white:#fff; --gray:#6B7280; --border:#E2E8F0;
+  --green:#22C55E; --green-bg:#dcfce7; --green-text:#15803d;
+  --amber-bg:#fef3c7; --amber-text:#92400e;
+  --red:#EF4444; --red-bg:#fee2e2; --red-text:#b91c1c;
+  --slate-bg:#f1f5f9; --slate-text:#64748b;
+  --blue-bg:#dbeafe; --blue-text:#1d4ed8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Poppins',sans-serif;background:var(--bg);color:var(--navy);min-height:100vh}
+
+/* ── Login ── */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:1rem}
+.login-card{background:var(--white);border-radius:16px;padding:2.5rem;width:100%;max-width:380px;box-shadow:0 8px 32px rgba(14,56,96,.12);text-align:center}
+.login-card img{height:52px;margin-bottom:1.5rem}
+.login-card h2{font-size:1.2rem;font-weight:600;margin-bottom:.25rem}
+.login-card p{font-size:.85rem;color:var(--gray);margin-bottom:1.75rem}
+.login-card input{width:100%;padding:.75rem 1rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.9rem;color:var(--navy);margin-bottom:1rem}
+.login-card input:focus{outline:none;border-color:var(--teal)}
+.btn-login{width:100%;padding:.75rem;background:var(--navy);color:var(--white);border:none;border-radius:8px;font-family:inherit;font-size:.95rem;font-weight:600;cursor:pointer}
+.err{color:var(--red);font-size:.8rem;margin-top:.5rem;display:none}
+
+/* ── App shell ── */
+#app{display:none}
+header{background:var(--navy);padding:.9rem 1.5rem;display:flex;align-items:center;justify-content:space-between}
+header img{height:40px;filter:brightness(0) invert(1);background:transparent}
+.hdr-center h1{color:#fff;font-size:1rem;font-weight:700;text-align:center}
+.hdr-center p{color:rgba(255,255,255,.55);font-size:.72rem;text-align:center}
+.hdr-right{display:flex;align-items:center;gap:.75rem}
+.logout-btn{background:rgba(255,255,255,.15);color:#fff;border:none;padding:.35rem .8rem;border-radius:6px;font-family:inherit;font-size:.78rem;cursor:pointer}
+
+/* ── Folder tabs ── */
+.tab-bar{display:flex;align-items:flex-end;padding:0 1.5rem;background:var(--navy);gap:4px}
+.tab{padding:.55rem 1.4rem;border-radius:10px 10px 0 0;font-size:.82rem;font-weight:600;cursor:pointer;border:2px solid transparent;border-bottom:none;color:rgba(255,255,255,.6);background:rgba(255,255,255,.08);transition:.15s;white-space:nowrap}
+.tab:hover{color:#fff;background:rgba(255,255,255,.15)}
+.tab.active{background:var(--bg);color:var(--navy);border-color:var(--border);border-bottom-color:var(--bg);position:relative;bottom:-1px}
+.tab-content-wrap{background:var(--bg);min-height:calc(100vh - 110px);border-top:2px solid var(--border)}
+
+/* ── Tab panels ── */
+.panel{display:none;padding:1.5rem;max-width:1600px;margin:0 auto}
+.panel.active{display:block}
+
+/* ── Stats bar ── */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:.75rem;margin-bottom:1.5rem}
+.stat{background:var(--white);border-radius:10px;padding:.9rem 1rem;box-shadow:0 2px 8px rgba(14,56,96,.06)}
+.stat .lbl{font-size:.7rem;color:var(--gray);font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.stat .val{font-size:1.8rem;font-weight:700;line-height:1.1;margin-top:.1rem}
+.v-green{color:var(--green)} .v-amber{color:#F97316} .v-red{color:var(--red)} .v-navy{color:var(--navy)} .v-teal{color:var(--teal)}
+
+/* ── Controls ── */
+.controls{display:flex;align-items:center;gap:.6rem;margin-bottom:1rem;flex-wrap:wrap}
+.controls input[type=text]{padding:.45rem .9rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;width:190px}
+.controls input:focus{outline:none;border-color:var(--teal)}
+.fb{padding:.4rem .8rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.78rem;cursor:pointer;background:var(--white);color:var(--navy);font-weight:500}
+.fb.active,.fb:hover{background:var(--navy);color:#fff;border-color:var(--navy)}
+.add-btn{margin-left:auto;padding:.45rem 1rem;background:var(--teal);color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:.82rem;font-weight:600;cursor:pointer}
+
+/* ── Table ── */
+.tbl-wrap{background:var(--white);border-radius:12px;box-shadow:0 2px 12px rgba(14,56,96,.07);overflow-x:auto}
+table{width:100%;border-collapse:collapse;min-width:800px}
+thead th{background:var(--navy);color:#fff;padding:.7rem .9rem;text-align:left;font-size:.71rem;font-weight:600;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap}
+thead th:first-child{border-radius:12px 0 0 0} thead th:last-child{border-radius:0 12px 0 0}
+tbody tr{border-bottom:1px solid var(--border)} tbody tr:last-child{border-bottom:none} tbody tr:hover{background:#f0f7ff}
+td{padding:.7rem .9rem;font-size:.83rem;vertical-align:middle}
+.name-cell{font-weight:600}
+.sub{font-size:.68rem;color:var(--gray);display:block;margin-top:1px}
+.empty{text-align:center;padding:3rem;color:var(--gray)}
+
+/* ── Badges ── */
+.badge{display:inline-flex;align-items:center;padding:.18rem .5rem;border-radius:20px;font-size:.68rem;font-weight:600;white-space:nowrap}
+.b-green{background:var(--green-bg);color:var(--green-text)}
+.b-amber{background:var(--amber-bg);color:var(--amber-text)}
+.b-red{background:var(--red-bg);color:var(--red-text)}
+.b-gray{background:var(--slate-bg);color:var(--slate-text)}
+.b-blue{background:var(--blue-bg);color:var(--blue-text)}
+.b-navy{background:#e0e7ff;color:#3730a3}
+
+/* ── Check cell ── */
+.chk{display:flex;flex-direction:column;gap:2px}
+.chk-date{font-size:.67rem;color:var(--gray)}
+.proof-link{font-size:.67rem;color:var(--teal);text-decoration:none}
+.proof-link:hover{text-decoration:underline}
+
+/* ── Action buttons ── */
+.acts{display:flex;gap:.35rem}
+.ibtn{background:none;border:1.5px solid var(--border);border-radius:6px;padding:.25rem .45rem;cursor:pointer;font-size:.75rem;color:var(--navy)}
+.ibtn:hover{border-color:var(--teal)}
+
+/* ── Alert banner ── */
+.alert-banner{background:var(--red-bg);border:1.5px solid #fca5a5;border-radius:10px;padding:.75rem 1rem;margin-bottom:1rem;font-size:.82rem;color:var(--red-text);font-weight:500}
+
+/* ── Orientation Calendar ── */
+.or-layout{display:grid;grid-template-columns:300px 1fr;gap:1.25rem;align-items:start}
+.cal-card{background:var(--white);border-radius:12px;box-shadow:0 2px 12px rgba(14,56,96,.07);overflow:hidden;margin-bottom:.75rem}
+.cal-hdr{background:var(--navy);color:#fff;padding:.8rem 1rem;display:flex;align-items:center;justify-content:space-between}
+.cal-hdr h3{font-size:.88rem;font-weight:700;margin:0}
+.cal-nav-btn{background:none;border:none;color:#fff;font-size:1.1rem;cursor:pointer;padding:.15rem .4rem;opacity:.7;border-radius:4px;transition:.15s}
+.cal-nav-btn:hover{opacity:1;background:rgba(255,255,255,.15)}
+.cal-dow{display:grid;grid-template-columns:repeat(7,1fr);text-align:center;font-size:.62rem;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.03em;padding:.5rem .5rem .2rem}
+.cal-days{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;padding:.3rem .5rem .6rem}
+.cal-day{min-height:44px;border-radius:7px;padding:.3rem .25rem;cursor:pointer;transition:.12s;display:flex;flex-direction:column;align-items:center}
+.cal-day:hover:not(.past):not(.other){background:var(--bg)}
+.cal-day.other{opacity:.25;pointer-events:none}
+.cal-day.is-today .day-num{background:var(--navy);color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center}
+.cal-day.has-session{background:#e6f8f7;cursor:pointer}
+.cal-day.has-session:hover{background:#c5f0ee}
+.cal-day.selected{background:var(--teal)!important;color:#fff}
+.cal-day.selected .day-num{color:#fff}
+.cal-day.selected .day-cnt{color:#fff}
+.cal-day.past{opacity:.4;cursor:default}
+.day-num{font-size:.75rem;font-weight:600;color:var(--navy);line-height:1.4}
+.cal-day.selected .day-num{color:#fff}
+.day-cnt{font-size:.62rem;font-weight:700;color:var(--teal);margin-top:1px}
+.cal-day.selected .day-cnt{color:rgba(255,255,255,.85)}
+.or-sessions-panel{background:var(--white);border-radius:12px;box-shadow:0 2px 12px rgba(14,56,96,.07);overflow:hidden}
+.or-sessions-hdr{padding:.85rem 1.1rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border)}
+.or-sessions-hdr h3{font-size:.88rem;font-weight:700;color:var(--navy);margin:0}
+.session-card{padding:1rem 1.1rem;border-bottom:1px solid var(--border);transition:.12s}
+.session-card:last-child{border-bottom:none}
+.session-card.highlighted{background:#e6f8f7}
+.session-card:hover{background:#f8fffe}
+.sess-top{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.5rem}
+.sess-date-block .sess-dow{font-size:.68rem;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.05em}
+.sess-date-block .sess-date{font-size:1rem;font-weight:700;color:var(--navy)}
+.sess-date-block .sess-time{font-size:.8rem;color:var(--gray);margin-top:1px}
+.sess-actions{display:flex;gap:.3rem}
+.sess-loc{font-size:.73rem;color:var(--gray);margin-bottom:.55rem;display:flex;align-items:center;gap:.3rem}
+.cap-row{display:flex;align-items:center;gap:.6rem;margin-bottom:.55rem}
+.cap-text{font-size:.72rem;color:var(--navy);font-weight:600;white-space:nowrap}
+.cap-bar{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.cap-fill{height:100%;background:var(--teal);border-radius:3px;transition:.3s}
+.cap-fill.full{background:#F97316}
+.sess-bookings{display:flex;flex-wrap:wrap;gap:.25rem;margin-bottom:.55rem}
+.booking-chip{background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:.12rem .5rem;font-size:.68rem;color:var(--navy);font-weight:500}
+.sess-link-row{display:flex;align-items:center;gap:.4rem}
+.copy-link-btn{padding:.28rem .6rem;font-size:.72rem;background:var(--teal);color:#fff;border:none;border-radius:6px;cursor:pointer;font-family:inherit;font-weight:600;transition:.15s}
+.copy-link-btn:hover{opacity:.85}
+
+/* ── Modal ── */
+.overlay{display:none;position:fixed;inset:0;background:rgba(14,56,96,.35);z-index:100;align-items:center;justify-content:center;padding:1rem}
+.overlay.open{display:flex}
+.modal{background:var(--white);border-radius:14px;padding:1.75rem;width:100%;max-width:620px;max-height:92vh;overflow-y:auto;box-shadow:0 20px 60px rgba(14,56,96,.2)}
+.modal h3{font-size:1rem;margin-bottom:1.1rem}
+.fg{display:grid;grid-template-columns:1fr 1fr;gap:.65rem}
+.fg .grp{display:flex;flex-direction:column;gap:.2rem}
+.fg .grp.full{grid-column:1/-1}
+.grp label{font-size:.7rem;font-weight:600;color:var(--gray);text-transform:uppercase;letter-spacing:.03em}
+.grp input,.grp select{padding:.5rem .75rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.84rem;color:var(--navy)}
+.grp input:focus,.grp select:focus{outline:none;border-color:var(--teal)}
+.grp input[type=checkbox]{width:auto;accent-color:var(--teal)}
+.sect-lbl{font-size:.72rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.06em;margin:.7rem 0 .1rem;padding-bottom:.25rem;border-bottom:2px solid var(--yellow);grid-column:1/-1}
+.modal-acts{display:flex;justify-content:flex-end;gap:.65rem;margin-top:1.1rem}
+.btn-cancel{padding:.5rem 1rem;border:1.5px solid var(--border);border-radius:8px;background:var(--white);font-family:inherit;font-size:.85rem;cursor:pointer}
+.btn-save{padding:.5rem 1.2rem;background:var(--navy);color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:.85rem;font-weight:600;cursor:pointer}
+
+/* ── Attendance marking ── */
+.attend-booking{display:flex;align-items:center;justify-content:space-between;padding:.4rem .6rem;border-radius:8px;background:var(--bg);margin-bottom:.3rem;gap:.5rem;flex-wrap:wrap}
+.attend-booking:last-child{margin-bottom:0}
+.attend-name{font-size:.78rem;font-weight:600;color:var(--navy);flex:1;min-width:100px}
+.attend-btns{display:flex;gap:.25rem;flex-wrap:wrap}
+.att-btn{padding:.22rem .45rem;border:1.5px solid var(--border);border-radius:6px;font-family:inherit;font-size:.7rem;font-weight:600;cursor:pointer;background:var(--white);color:var(--navy);transition:.12s;white-space:nowrap}
+.att-btn:hover{opacity:.8}
+.att-btn.att-attended{background:var(--green-bg);color:var(--green-text);border-color:#86efac}
+.att-btn.att-noshow{background:var(--red-bg);color:var(--red-text);border-color:#fca5a5}
+.att-btn.att-rescheduled{background:var(--amber-bg);color:var(--amber-text);border-color:#fcd34d}
+.att-btn.att-canceled{background:var(--slate-bg);color:var(--slate-text);border-color:#cbd5e1}
+.past-sess-toggle{display:flex;gap:.3rem;margin-bottom:.6rem;padding:.5rem .75rem;background:var(--bg);border-radius:8px}
+.pts-btn{flex:1;padding:.3rem .6rem;border:1.5px solid var(--border);border-radius:6px;font-family:inherit;font-size:.75rem;font-weight:600;cursor:pointer;background:var(--white);color:var(--navy);transition:.12s}
+.pts-btn.active{background:var(--navy);color:#fff;border-color:var(--navy)}
+
+/* ── Offboarding checklist ── */
+.ob-checklist{display:flex;flex-direction:column;gap:.4rem;margin-top:.5rem}
+.ob-item{display:flex;align-items:center;gap:.6rem;font-size:.82rem}
+.ob-item input[type=checkbox]{accent-color:var(--teal);width:14px;height:14px;cursor:pointer}
+.ob-item.done{color:var(--gray);text-decoration:line-through}
+.ob-section{font-size:.72rem;font-weight:700;text-transform:uppercase;color:var(--navy);margin:.9rem 0 .25rem;letter-spacing:.05em}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <img src="https://images.leadconnectorhq.com/image/f_webp/q_80/r_1200/u_https://assets.cdn.filesafe.space/Recp0AhyMh8lrtKJ9kaj/media/691b9707bb3d037e0ad689bf.png" alt="Caring Companions">
+    <h2>Compliance Hub</h2>
+    <p>HR admin access only</p>
+    <input type="password" id="pwd" placeholder="Password">
+    <button class="btn-login" onclick="doLogin()">Sign In</button>
+    <div class="err" id="err">Incorrect password.</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <header>
+    <img src="https://images.leadconnectorhq.com/image/f_webp/q_80/r_1200/u_https://assets.cdn.filesafe.space/Recp0AhyMh8lrtKJ9kaj/media/691b9707bb3d037e0ad689bf.png" alt="Caring Companions">
+    <div class="hdr-center"><h1>Compliance Hub</h1><p id="hdr-date"></p></div>
+    <div class="hdr-right">
+      <div style="position:relative">
+        <input type="text" id="global-search" placeholder="🔍 Search all..." oninput="onGlobalSearch(this.value)"
+          style="padding:.35rem .75rem .35rem 2rem;border:1.5px solid rgba(255,255,255,.3);border-radius:8px;background:rgba(255,255,255,.12);color:#fff;font-family:inherit;font-size:.82rem;width:170px;outline:none"
+          onfocus="this.style.borderColor='rgba(255,255,255,.7)'" onblur="this.style.borderColor='rgba(255,255,255,.3)'">
+        <span style="position:absolute;left:.55rem;top:50%;transform:translateY(-50%);font-size:.78rem;opacity:.6;pointer-events:none">🔍</span>
+      </div>
+      <button class="logout-btn" onclick="openChangePwd()">🔑 Change Password</button>
+      <button class="logout-btn" onclick="doLogout()">Sign Out</button>
+    </div>
+  </header>
+
+  <div class="tab-bar">
+    <div class="tab active" onclick="switchTab('onboarding',this)">🔍 Background & References</div>
+    <div class="tab" onclick="switchTab('orientations',this)">📅 Orientations</div>
+    <div class="tab" onclick="switchTab('training',this)">🎓 Training</div>
+    <div class="tab" onclick="switchTab('compliance',this)">✅ Active Compliance</div>
+    <div class="tab" onclick="switchTab('offboarding',this)">🚪 Offboarding</div>
+  </div>
+
+  <div class="tab-content-wrap">
+
+    <!-- ═══════════════════════════════ ONBOARDING ═══════════════════════════════ -->
+    <div class="panel active" id="panel-onboarding">
+
+      <!-- Workflow context blurb -->
+      <div style="background:var(--white);border-left:4px solid var(--teal);border-radius:0 10px 10px 0;padding:.9rem 1.1rem;margin-bottom:1.25rem;box-shadow:0 2px 8px rgba(14,56,96,.06)">
+        <div style="font-size:.8rem;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem">How candidates appear here</div>
+        <div style="font-size:.83rem;color:var(--navy);line-height:1.6">
+          Candidates in this tab have <strong>completed Step 1 onboarding paperwork in Viventium</strong>, which automatically pushes them into AxisCare and triggers their appearance here.
+          At this stage, all <strong>background checks</strong> (FCSR, and fingerprint if applicable) and <strong>reference checks</strong> must be completed before a hiring decision can be made.
+          A candidate reaches <strong>Ready for Orientation</strong> only after 2 positive references and clear results on all three checks: <strong>OIG</strong>, <strong>EDL</strong>, and <strong>FCSR</strong>.
+        </div>
+      </div>
+
+      <div class="stats" id="ob-stats"></div>
+      <div class="controls">
+        <input type="text" placeholder="Search candidate..." oninput="renderOB()">
+        <button class="fb active" onclick="obFilter('all',this)">All</button>
+        <button class="fb" onclick="obFilter('ready',this)">✅ Ready for Orientation</button>
+        <button class="fb" onclick="obFilter('refs',this)">📋 Awaiting References</button>
+        <button class="fb" onclick="obFilter('bg',this)">🔍 Pending Background Check</button>
+        <button class="fb" onclick="obFilter('review',this)">⚠️ Needs Review</button>
+        <button class="add-btn" onclick="openOBModal()">+ Add Candidate</button>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr>
+            <th>Candidate</th>
+            <th>Ref 1</th><th>Ref 2</th><th>Ref 3</th><th>Ref 4</th>
+            <th>OIG Check</th>
+            <th>EDL Check</th>
+            <th>FCSR BG</th>
+            <th>Fingerprint BG <span style="font-weight:400;opacity:.7">if out-of-state</span></th>
+            <th>Status</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="ob-tbody"></tbody>
+        </table>
+        <div class="empty" id="ob-empty" style="display:none">No candidates match.</div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════ TRAINING ════════════════════════════════ -->
+    <div class="panel" id="panel-training">
+      <div id="train-alert"></div>
+      <div class="stats" id="tr-stats"></div>
+      <div class="controls">
+        <input type="text" placeholder="Search caregiver..." oninput="renderTR()">
+        <button class="fb active" onclick="trFilter('all',this)">All</button>
+        <button class="fb" onclick="trFilter('blocked',this)">⛔ Pre-Contact Blocked</button>
+        <button class="fb" onclick="trFilter('ojt-due',this)">30-Day Due</button>
+        <button class="fb" onclick="trFilter('annual-due',this)">Annual Due</button>
+        <button class="add-btn" onclick="openCGModal('training')">+ Add Caregiver</button>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr>
+            <th>Caregiver</th><th>Hire Date</th>
+            <th>Pre-Contact (6hr) <span style="font-weight:400;opacity:.7">before clients</span></th>
+            <th>30-Day OJT (12hr total) <span style="font-weight:400;opacity:.7">deadline</span></th>
+            <th>Annual 5hr <span style="font-weight:400;opacity:.7">yr 2+</span></th>
+            <th>Overall</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="tr-tbody"></tbody>
+        </table>
+        <div class="empty" id="tr-empty" style="display:none">No caregivers match.</div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════ ACTIVE COMPLIANCE ════════════════════════ -->
+    <div class="panel" id="panel-compliance">
+      <div class="stats" id="ac-stats"></div>
+      <div class="controls">
+        <input type="text" placeholder="Search caregiver..." oninput="renderAC()">
+        <button class="fb active" onclick="acFilter('all',this)">All</button>
+        <button class="fb" onclick="acFilter('overdue',this)">Overdue</button>
+        <button class="fb" onclick="acFilter('duesoon',this)">Due Soon</button>
+        <button class="fb" onclick="acFilter('current',this)">All Current</button>
+        <button class="add-btn" onclick="exportComplianceCSV()" style="background:var(--navy)">📥 Export CSV</button>
+        <button class="add-btn" onclick="openCGModal('compliance')">+ Add Caregiver</button>
+      </div>
+      <div id="ac-bulk-bar" style="background:var(--navy);padding:.6rem 1rem;border-radius:8px 8px 0 0;align-items:center;gap:.75rem;flex-wrap:wrap;display:none">
+        <span id="ac-bulk-count" style="color:#fff;font-size:.82rem;font-weight:600;min-width:80px"></span>
+        <button onclick="bulkMarkCheck('oig')" style="padding:.32rem .75rem;background:var(--teal);color:#fff;border:none;border-radius:6px;font-size:.78rem;cursor:pointer;font-family:inherit;font-weight:600">✔ OIG Checked Today</button>
+        <button onclick="bulkMarkCheck('edl')" style="padding:.32rem .75rem;background:var(--teal);color:#fff;border:none;border-radius:6px;font-size:.78rem;cursor:pointer;font-family:inherit;font-weight:600">✔ EDL Checked Today</button>
+        <button onclick="bulkMarkCheck('fcsr')" style="padding:.32rem .75rem;background:var(--teal);color:#fff;border:none;border-radius:6px;font-size:.78rem;cursor:pointer;font-family:inherit;font-weight:600">✔ FCSR Checked Today</button>
+        <button onclick="acSelected.clear();renderAC();" style="padding:.32rem .75rem;background:rgba(255,255,255,.15);color:#fff;border:none;border-radius:6px;font-size:.78rem;cursor:pointer;font-family:inherit">Clear</button>
+      </div>
+      <div class="tbl-wrap" id="ac-tbl-wrap">
+        <table>
+          <thead><tr>
+            <th style="width:36px"><input type="checkbox" id="ac-chk-all" onchange="toggleACSelectAll(this.checked)" style="accent-color:var(--teal);cursor:pointer"></th>
+            <th>Caregiver</th>
+            <th>OIG <span style="font-weight:400;opacity:.7">90 days</span></th>
+            <th>EDL <span style="font-weight:400;opacity:.7">90 days</span></th>
+            <th>FCSR <span style="font-weight:400;opacity:.7">annual</span></th>
+            <th>Fingerprint BG</th>
+            <th>Actions</th>
+          </tr></thead>
+          <tbody id="ac-tbody"></tbody>
+        </table>
+        <div class="empty" id="ac-empty" style="display:none">No caregivers match.</div>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════ OFFBOARDING ══════════════════════════════ -->
+    <div class="panel" id="panel-offboarding">
+      <div class="stats" id="off-stats"></div>
+      <div class="controls">
+        <input type="text" placeholder="Search..." oninput="renderOFF()">
+        <button class="fb active" onclick="offFilter('all',this)">All</button>
+        <button class="fb" onclick="offFilter('active',this)">In Progress</button>
+        <button class="fb" onclick="offFilter('complete',this)">Complete</button>
+        <button class="add-btn" onclick="openOFFModal()">+ Add Offboarding</button>
+      </div>
+      <div class="tbl-wrap">
+        <table>
+          <thead><tr>
+            <th>Employee</th><th>Last Day</th>
+            <th>AxisCare Deactivated</th><th>Viventium Updated</th>
+            <th>Equipment Returned</th><th>Final Paycheck</th>
+            <th>Exit Interview</th><th>Benefits End Date</th><th>Notes</th><th>Actions</th>
+          </tr></thead>
+          <tbody id="off-tbody"></tbody>
+        </table>
+        <div class="empty" id="off-empty" style="display:none">No offboarding records.</div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════ ORIENTATIONS ══════════════════════════════ -->
+    <div class="panel" id="panel-orientations">
+
+      <div style="background:var(--white);border-left:4px solid var(--yellow);border-radius:0 10px 10px 0;padding:.9rem 1.1rem;margin-bottom:1.25rem;box-shadow:0 2px 8px rgba(14,56,96,.06)">
+        <div style="font-size:.8rem;font-weight:700;color:#c47f00;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.3rem">How this works</div>
+        <div style="font-size:.83rem;color:var(--navy);line-height:1.6">
+          Create orientation sessions below — set the date, time, and capacity (up to 6 per session). Use <strong>Copy Booking Link</strong> to send a candidate a personalized link where they can choose their preferred session. When they book, Zapier creates the Google Calendar event and texts them a confirmation.
+        </div>
+      </div>
+
+      <div class="or-layout">
+        <!-- Left: Calendar -->
+        <div>
+          <div class="cal-card">
+            <div class="cal-hdr">
+              <button class="cal-nav-btn" onclick="calPrev()">‹</button>
+              <h3 id="cal-month-label">June 2026</h3>
+              <button class="cal-nav-btn" onclick="calNext()">›</button>
+            </div>
+            <div class="cal-dow"><div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div></div>
+            <div class="cal-days" id="cal-days"></div>
+          </div>
+          <div style="font-size:.72rem;color:var(--gray);text-align:center;margin-top:.25rem">Click a highlighted day to view its sessions</div>
+          <div class="stats" id="or-stats" style="margin-top:.75rem;margin-bottom:0;grid-template-columns:1fr 1fr"></div>
+        </div>
+
+        <!-- Right: Sessions list -->
+        <div class="or-sessions-panel">
+          <div class="or-sessions-hdr">
+            <h3 id="or-list-title">All Upcoming Sessions</h3>
+            <div style="display:flex;align-items:center;gap:.5rem">
+              <span id="or-session-count" style="font-size:.75rem;color:var(--gray)"></span>
+              <button class="add-btn" style="padding:.3rem .7rem;font-size:.75rem" onclick="openOrientModal()">+ Add Session</button>
+            </div>
+          </div>
+          <div class="past-sess-toggle" style="border-bottom:1px solid var(--border);border-radius:0;padding:.5rem .85rem">
+            <button id="pts-upcoming" class="pts-btn active" onclick="setPastView(false)">📅 Upcoming</button>
+            <button id="pts-past" class="pts-btn" onclick="setPastView(true)">📋 Past Sessions &amp; Attendance</button>
+          </div>
+          <div id="or-sessions-list"></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL: Edit scope choice (single vs series) -->
+<div class="overlay" id="edit-scope-modal">
+  <div class="modal" style="max-width:380px;text-align:center">
+    <h3 style="margin-bottom:.4rem">Edit Orientation Session</h3>
+    <p style="color:#555;font-size:.9rem;margin-bottom:1.2rem">This session is part of a recurring series. What would you like to edit?</p>
+    <div style="display:flex;flex-direction:column;gap:.65rem">
+      <button class="btn" onclick="openOrientModalWithScope('single')" style="padding:.7rem 1rem;font-size:.95rem">
+        📅 This session only
+      </button>
+      <button class="btn" onclick="openOrientModalWithScope('future')" style="padding:.7rem 1rem;font-size:.95rem;background:var(--teal)">
+        📅📅 This &amp; all future sessions in this series
+      </button>
+    </div>
+    <button class="btn" onclick="closeModal('edit-scope-modal')" style="margin-top:.9rem;background:#eee;color:#333;padding:.5rem 1rem;font-size:.85rem">Cancel</button>
+  </div>
+</div>
+
+<!-- MODAL: Delete scope choice (single vs series) -->
+<div class="overlay" id="delete-scope-modal">
+  <div class="modal" style="max-width:380px;text-align:center">
+    <h3 style="margin-bottom:.4rem">Delete Orientation Session</h3>
+    <p style="color:#555;font-size:.9rem;margin-bottom:1.2rem">This session is part of a recurring series. What would you like to delete?</p>
+    <div style="display:flex;flex-direction:column;gap:.65rem">
+      <button class="btn" onclick="deleteOrientConfirm('single')" style="padding:.7rem 1rem;font-size:.95rem">
+        🗑️ This session only
+      </button>
+      <button class="btn" onclick="deleteOrientConfirm('future')" style="padding:.7rem 1rem;font-size:.95rem;background:#EF4444;color:#fff;border:none;cursor:pointer">
+        🗑️🗑️ This &amp; all future sessions in this series
+      </button>
+    </div>
+    <button class="btn" onclick="closeModal('delete-scope-modal')" style="margin-top:.9rem;background:#eee;color:#333;padding:.5rem 1rem;font-size:.85rem;cursor:pointer">Cancel</button>
+  </div>
+</div>
+
+<!-- MODAL: Cancellation details -->
+<div class="overlay" id="cancel-modal">
+  <div class="modal" style="max-width:400px">
+    <h3>Cancellation Details</h3>
+    <p style="font-size:.88rem;color:var(--gray);margin-bottom:1rem">How did <strong id="cancel-modal-name"></strong> cancel?</p>
+    <div style="display:flex;flex-direction:column;gap:.55rem;margin-bottom:1rem">
+      <label style="display:flex;align-items:center;gap:.5rem;font-size:.88rem;cursor:pointer">
+        <input type="radio" name="cancel-method" value="call" style="accent-color:var(--teal)"> 📞 Called us
+      </label>
+      <label style="display:flex;align-items:center;gap:.5rem;font-size:.88rem;cursor:pointer">
+        <input type="radio" name="cancel-method" value="text" style="accent-color:var(--teal)"> 💬 Texted us
+      </label>
+      <label style="display:flex;align-items:center;gap:.5rem;font-size:.88rem;cursor:pointer">
+        <input type="radio" name="cancel-method" value="other" style="accent-color:var(--teal)"> ❓ Other / Unknown
+      </label>
+    </div>
+    <div class="grp" style="margin-bottom:1rem">
+      <label>Reason (optional)</label>
+      <input type="text" id="cancel-reason-input" placeholder="e.g. Took another job, family emergency…">
+    </div>
+    <div class="modal-acts">
+      <button class="btn-cancel" onclick="closeModal('cancel-modal')">Back</button>
+      <button class="btn-save" onclick="saveCancelDetails()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Add/Edit Orientation Session -->
+<div class="overlay" id="orient-modal">
+  <div class="modal" style="max-width:500px">
+    <h3 id="orient-modal-title">Add Orientation Session</h3>
+    <div class="form-grid">
+      <div class="grp"><label>Start Date</label><input type="date" id="or-date"></div>
+      <div class="grp"><label>Start Time</label><input type="time" id="or-time" value="10:00"></div>
+      <div class="grp"><label>Max Capacity</label>
+        <select id="or-cap">
+          <option value="1">1 person</option><option value="2">2 people</option><option value="3">3 people</option>
+          <option value="4">4 people</option><option value="5">5 people</option><option value="6" selected>6 people</option>
+        </select>
+      </div>
+      <div class="grp"><label>Location</label>
+        <select id="or-remote" onchange="document.getElementById('or-link-grp').style.display=this.value==='yes'?'block':'none'">
+          <option value="no">In-Person — 1331 N Stewart Ave Ste B</option>
+          <option value="yes">Remote (video call)</option>
+        </select>
+      </div>
+      <div class="grp full" id="or-link-grp" style="display:none">
+        <label>Video Link (Zoom / Google Meet)</label>
+        <input type="text" id="or-video-link" placeholder="https://zoom.us/j/...">
+      </div>
+      <div class="grp full"><label>Notes (optional)</label><input type="text" id="or-notes-field" placeholder="e.g. Bring ID, park in rear lot"></div>
+
+      <!-- Recurrence -->
+      <div class="grp full" id="or-recur-grp">
+        <label>Repeat</label>
+        <select id="or-recur" onchange="toggleRecurFields()">
+          <option value="none">Does not repeat</option>
+          <option value="weekly">Weekly (same day each week)</option>
+          <option value="biweekly">Every 2 weeks</option>
+          <option value="monthly">Monthly (same date each month)</option>
+        </select>
+      </div>
+      <div id="or-recur-fields" style="display:none;grid-column:1/-1">
+        <div style="background:#f0fffe;border:1.5px solid var(--teal);border-radius:10px;padding:.85rem 1rem;margin-top:.25rem">
+          <div style="font-size:.7rem;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.65rem">Recurrence settings</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:.6rem">
+            <div class="grp">
+              <label>End after</label>
+              <select id="or-recur-end-type" onchange="toggleRecurEnd()">
+                <option value="count">Number of sessions</option>
+                <option value="date">End date</option>
+              </select>
+            </div>
+            <div class="grp" id="or-recur-count-grp">
+              <label>Number of sessions</label>
+              <select id="or-recur-count">
+                <option value="2">2 sessions</option>
+                <option value="3">3 sessions</option>
+                <option value="4">4 sessions</option>
+                <option value="5">5 sessions</option>
+                <option value="6">6 sessions</option>
+                <option value="8">8 sessions</option>
+                <option value="10">10 sessions</option>
+                <option value="12">12 sessions</option>
+              </select>
+            </div>
+            <div class="grp" id="or-recur-date-grp" style="display:none">
+              <label>End by date</label>
+              <input type="date" id="or-recur-end-date">
+            </div>
+          </div>
+          <div id="or-recur-preview" style="margin-top:.6rem;font-size:.72rem;color:var(--navy);line-height:1.7"></div>
+        </div>
+      </div>
+    </div>
+    <div class="modal-acts">
+      <button class="btn-cancel" onclick="closeModal('orient-modal')">Cancel</button>
+      <button class="btn-save" id="or-save-btn" onclick="saveOrient()">Save Session</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Copy Booking Link -->
+<div class="overlay" id="booking-link-modal">
+  <div class="modal" style="max-width:480px">
+    <h3>📋 Candidate Booking Link</h3>
+    <p style="font-size:.82rem;color:var(--gray);margin-bottom:1rem">Send this link to a candidate so they can choose their preferred orientation session. The link expires when all selected sessions are full.</p>
+    <div style="background:var(--bg);border-radius:8px;padding:.75rem;margin-bottom:1rem;border:1.5px solid var(--border)">
+      <div style="font-size:.7rem;color:var(--gray);margin-bottom:.4rem;font-weight:600">Candidate</div>
+      <div style="font-weight:600;color:var(--navy);font-size:.9rem;margin-bottom:.75rem" id="bl-cand-name">—</div>
+      <div style="font-size:.7rem;color:var(--gray);margin-bottom:.4rem;font-weight:600">Booking Link</div>
+      <div style="background:var(--white);border-radius:6px;padding:.6rem .75rem;font-size:.72rem;color:var(--navy);word-break:break-all;border:1px solid var(--border);user-select:all" id="bl-url"></div>
+    </div>
+    <div style="font-size:.75rem;color:var(--gray);margin-bottom:1rem">💡 Tip: Copy this link and paste it into a GHL text or email to the candidate.</div>
+    <div class="modal-acts">
+      <button class="btn-cancel" onclick="closeModal('booking-link-modal')">Close</button>
+      <button class="btn-save" style="background:var(--teal)" onclick="copyBLToClipboard()">📋 Copy Link</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Onboarding candidate -->
+<div class="overlay" id="ob-modal">
+  <div class="modal">
+    <h3 id="ob-modal-title">Add Candidate</h3>
+    <div class="fg">
+      <div class="sect-lbl">Candidate</div>
+      <div class="grp"><label>First Name</label><input type="text" id="ob-first"></div>
+      <div class="grp"><label>Last Name</label><input type="text" id="ob-last"></div>
+      <div class="grp"><label>Cell Phone</label><input type="text" id="ob-phone" placeholder="4175551234"></div>
+      <div class="grp"><label>Lived outside MO in last 5 years?</label>
+        <select id="ob-oos"><option value="">Unknown</option><option value="no">No</option><option value="yes">Yes — fingerprint required</option></select>
+      </div>
+      <div class="sect-lbl">References</div>
+      <div class="grp"><label>Ref 1 Name</label><input type="text" id="ob-r1n"></div>
+      <div class="grp"><label>Ref 1 Status</label>
+        <select id="ob-r1s"><option value="Pending">Pending</option><option value="Positive">Positive</option><option value="Conditional">Conditional</option><option value="Negative">Negative</option></select>
+      </div>
+      <div class="grp full"><label>Ref 1 Form Link</label><input type="url" id="ob-r1-proof" placeholder="https://…"></div>
+      <div class="grp"><label>Ref 2 Name</label><input type="text" id="ob-r2n"></div>
+      <div class="grp"><label>Ref 2 Status</label>
+        <select id="ob-r2s"><option value="Pending">Pending</option><option value="Positive">Positive</option><option value="Conditional">Conditional</option><option value="Negative">Negative</option></select>
+      </div>
+      <div class="grp full"><label>Ref 2 Form Link</label><input type="url" id="ob-r2-proof" placeholder="https://…"></div>
+      <div class="grp"><label>Ref 3 Name</label><input type="text" id="ob-r3n"></div>
+      <div class="grp"><label>Ref 3 Status</label>
+        <select id="ob-r3s"><option value="Pending">Pending</option><option value="Positive">Positive</option><option value="Conditional">Conditional</option><option value="Negative">Negative</option></select>
+      </div>
+      <div class="grp full"><label>Ref 3 Form Link</label><input type="url" id="ob-r3-proof" placeholder="https://…"></div>
+      <div class="grp"><label>Ref 4 Name</label><input type="text" id="ob-r4n"></div>
+      <div class="grp"><label>Ref 4 Status</label>
+        <select id="ob-r4s"><option value="Pending">Pending</option><option value="Positive">Positive</option><option value="Conditional">Conditional</option><option value="Negative">Negative</option></select>
+      </div>
+      <div class="grp full"><label>Ref 4 Form Link</label><input type="url" id="ob-r4-proof" placeholder="https://…"></div>
+      <div class="sect-lbl">Background &amp; Compliance</div>
+      <div class="grp"><label>OIG Status</label>
+        <select id="ob-oig"><option value="Pending">Pending</option><option value="CLEAR">Clear</option><option value="FLAGGED">Flagged</option></select>
+      </div>
+      <div class="grp"><label>OIG Check Date</label><input type="date" id="ob-oig-date"></div>
+      <div class="grp full"><label>OIG Document Link</label><input type="url" id="ob-oig-proof" placeholder="https://…"></div>
+      <div class="grp"><label>EDL Check Status</label>
+        <select id="ob-edl"><option value="Pending">Pending</option><option value="Clear">Clear</option><option value="Issues Found">Issues Found</option></select>
+      </div>
+      <div class="grp"><label>EDL Check Date</label><input type="date" id="ob-edl-date"></div>
+      <div class="grp full"><label>EDL Document Link</label><input type="url" id="ob-edl-proof" placeholder="https://…"></div>
+      <div class="grp"><label>FCSR BG Status</label>
+        <select id="ob-fcsr"><option value="Pending">Pending</option><option value="Clear">Clear</option><option value="Issues Found">Issues Found</option></select>
+      </div>
+      <div class="grp"><label>FCSR BG Date</label><input type="date" id="ob-fcsr-date"></div>
+      <div class="grp full"><label>FCSR Document Link</label><input type="url" id="ob-fcsr-proof" placeholder="https://…"></div>
+      <div class="grp"><label>Fingerprint BG Status</label>
+        <select id="ob-fp"><option value="N/A">N/A (in-state)</option><option value="Required">Required — not yet done</option><option value="Submitted">Submitted</option><option value="Clear">Clear</option><option value="Issues Found">Issues Found</option></select>
+      </div>
+      <div class="grp"><label>Fingerprint Date</label><input type="date" id="ob-fp-date"></div>
+      <div class="grp full"><label>Fingerprint Document Link</label><input type="url" id="ob-fp-proof" placeholder="https://…"></div>
+      <div class="grp full"><label>Notes</label><input type="text" id="ob-notes"></div>
+    </div>
+    <div class="modal-acts">
+      <button class="btn-cancel" onclick="closeModal('ob-modal')">Cancel</button>
+      <button class="btn-save" onclick="saveOB()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Caregiver (training + compliance) -->
+<div class="overlay" id="cg-modal">
+  <div class="modal">
+    <h3 id="cg-modal-title">Add Caregiver</h3>
+    <div class="fg">
+      <div class="sect-lbl">Caregiver</div>
+      <div class="grp"><label>First Name</label><input type="text" id="cg-first"></div>
+      <div class="grp"><label>Last Name</label><input type="text" id="cg-last"></div>
+      <div class="grp"><label>Hire Date</label><input type="date" id="cg-hire"></div>
+      <div class="grp"><label>Lived outside MO 5 yrs?</label>
+        <select id="cg-oos"><option value="no">No</option><option value="yes">Yes — fingerprint required</option></select>
+      </div>
+      <div class="sect-lbl">Training — Pre-Contact (6hr required before clients)</div>
+      <div class="grp"><label>Agency Orientation (2hr) — Date</label><input type="date" id="cg-orient"></div>
+      <div class="grp"><label>Alzheimer's &amp; Dementia (4hr online) — Date</label><input type="date" id="cg-alz"></div>
+      <div class="sect-lbl">Training — 30-Day OJT (12hr total within 30 days)</div>
+      <div class="grp"><label>OJT In-Person/On-Site — Date</label><input type="date" id="cg-ojt-date"></div>
+      <div class="grp"><label>OJT Signed Proof on File?</label>
+        <select id="cg-ojt-signed"><option value="no">No</option><option value="yes">Yes</option></select>
+      </div>
+      <div class="grp"><label>OJT Proof Link (Google Drive)</label><input type="url" id="cg-ojt-proof" placeholder="https://drive.google.com/..."></div>
+      <div class="grp"><label>OJT Online (2hr) — Date</label><input type="date" id="cg-ojt-online"></div>
+      <div class="sect-lbl">Training — Annual 5hr (Year 2+ only)</div>
+      <div class="grp"><label>Last Annual Training Date</label><input type="date" id="cg-annual"></div>
+      <div class="grp"><label>Annual Proof Link</label><input type="url" id="cg-annual-proof" placeholder="https://drive.google.com/..."></div>
+      <div class="sect-lbl">Active Compliance</div>
+      <div class="grp"><label>OIG Last Check Date</label><input type="date" id="cg-oig"></div>
+      <div class="grp"><label>OIG Status</label>
+        <select id="cg-oig-s"><option value="">Auto</option><option value="Current">Current</option><option value="Overdue">Overdue</option></select>
+      </div>
+      <div class="grp"><label>OIG Proof Link</label><input type="url" id="cg-oig-proof" placeholder="https://drive.google.com/..."></div>
+      <div class="grp"><label>EDL Last Check Date</label><input type="date" id="cg-edl"></div>
+      <div class="grp"><label>EDL Status</label>
+        <select id="cg-edl-s"><option value="">Auto</option><option value="Current">Current</option><option value="Overdue">Overdue</option></select>
+      </div>
+      <div class="grp"><label>EDL Proof Link</label><input type="url" id="cg-edl-proof" placeholder="https://drive.google.com/..."></div>
+      <div class="grp"><label>FCSR Last Check Date</label><input type="date" id="cg-fcsr"></div>
+      <div class="grp"><label>FCSR Status</label>
+        <select id="cg-fcsr-s"><option value="">Auto</option><option value="Current">Current</option><option value="Overdue">Overdue</option></select>
+      </div>
+      <div class="grp"><label>FCSR Proof Link</label><input type="url" id="cg-fcsr-proof" placeholder="https://drive.google.com/..."></div>
+      <div class="grp"><label>Fingerprint BG Status</label>
+        <select id="cg-fp"><option value="N/A">N/A</option><option value="Required">Required</option><option value="Clear">Clear</option><option value="Issues">Issues Found</option></select>
+      </div>
+      <div class="grp"><label>Fingerprint Date</label><input type="date" id="cg-fp-date"></div>
+      <div class="grp"><label>Fingerprint Proof Link</label><input type="url" id="cg-fp-proof" placeholder="https://drive.google.com/..."></div>
+    </div>
+    <div class="modal-acts">
+      <button class="btn-cancel" onclick="closeModal('cg-modal')">Cancel</button>
+      <button class="btn-save" onclick="saveCG()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Offboarding -->
+<div class="overlay" id="off-modal">
+  <div class="modal">
+    <h3 id="off-modal-title">Add Offboarding Record</h3>
+    <div class="fg">
+      <div class="grp"><label>First Name</label><input type="text" id="off-first"></div>
+      <div class="grp"><label>Last Name</label><input type="text" id="off-last"></div>
+      <div class="grp"><label>Last Day of Employment</label><input type="date" id="off-lastday"></div>
+      <div class="grp"><label>Reason</label>
+        <select id="off-reason"><option value="">--</option><option>Voluntary Resignation</option><option>Termination</option><option>End of Assignment</option><option>Retirement</option></select>
+      </div>
+      <div class="sect-lbl">Checklist</div>
+      <div class="grp"><label>AxisCare Deactivated</label><select id="off-ac"><option value="no">No</option><option value="yes">Yes</option></select></div>
+      <div class="grp"><label>AxisCare Date</label><input type="date" id="off-ac-date"></div>
+      <div class="grp"><label>Viventium Updated</label><select id="off-viv"><option value="no">No</option><option value="yes">Yes</option></select></div>
+      <div class="grp"><label>Equipment Returned</label><select id="off-equip"><option value="no">No</option><option value="yes">Yes</option><option value="na">N/A</option></select></div>
+      <div class="grp"><label>Final Paycheck Issued</label><select id="off-pay"><option value="no">No</option><option value="yes">Yes</option></select></div>
+      <div class="grp"><label>Final Pay Date</label><input type="date" id="off-pay-date"></div>
+      <div class="grp"><label>Exit Interview Done</label><select id="off-exit"><option value="no">No</option><option value="yes">Yes</option><option value="na">Declined</option></select></div>
+      <div class="grp"><label>Benefits End Date</label><input type="date" id="off-ben"></div>
+      <div class="grp full"><label>Notes</label><input type="text" id="off-notes"></div>
+    </div>
+    <div class="modal-acts">
+      <button class="btn-cancel" onclick="closeModal('off-modal')">Cancel</button>
+      <button class="btn-save" onclick="saveOFF()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Orientation invite — with booking link -->
+<div class="overlay" id="invite-modal">
+  <div class="modal" style="max-width:540px">
+    <h3>📅 Send Orientation Booking Link</h3>
+    <div style="background:var(--bg);border-radius:10px;padding:.85rem 1rem;margin-bottom:1rem;border:1.5px solid var(--border)">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem">
+        <div><div style="font-size:.69rem;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.04em">Candidate</div>
+          <div style="font-size:.9rem;font-weight:600;color:var(--navy)" id="inv-name"></div></div>
+        <div><div style="font-size:.69rem;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.04em">Phone</div>
+          <div style="font-size:.9rem;font-weight:600;color:var(--teal)" id="inv-phone"></div></div>
+      </div>
+    </div>
+
+    <!-- Available sessions -->
+    <div style="font-size:.72rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem">Available Sessions (included in booking link)</div>
+    <div id="inv-sessions-list" style="max-height:200px;overflow-y:auto;border:1.5px solid var(--border);border-radius:8px;margin-bottom:.85rem"></div>
+
+    <!-- Text preview -->
+    <div style="font-size:.72rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.4rem">Text message preview</div>
+    <div style="background:var(--bg);border-radius:8px;padding:.75rem;font-size:.82rem;line-height:1.6;color:var(--navy);border:1.5px solid var(--border);margin-bottom:.4rem" id="inv-msg"></div>
+    <div style="font-size:.7rem;color:var(--gray);margin-bottom:.85rem">Sent from GHL (417) 815-6423 via Zapier · <a href="#" id="inv-copy-link" style="color:var(--teal);font-weight:600">Copy link only</a></div>
+
+    <div id="inv-sending" style="display:none;text-align:center;padding:.75rem;color:var(--teal);font-size:.88rem;font-weight:600">Sending… ✉️</div>
+    <div class="modal-acts" id="inv-actions">
+      <button class="btn-cancel" onclick="closeModal('invite-modal')">Cancel</button>
+      <button class="btn-save" style="background:var(--teal);" onclick="confirmSendInvite()">✉️ Send Text Now</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── Auth — password stored in localStorage (not plaintext in source) ──
+// Default password on first load: CC2026Hub!
+// Change it anytime via the header "Change Password" button.
+const DEFAULT_PWD_B64 = btoa('CC2026Hub!');
+function getStoredPwd(){ return localStorage.getItem('cc_pwd') || DEFAULT_PWD_B64; }
+function checkPwd(val){ return btoa(val) === getStoredPwd(); }
+
+const TODAY = new Date(); TODAY.setHours(0,0,0,0);
+
+// ── Auth ──────────────────────────────────────────────────────────────
+function doLogin(){
+  if(checkPwd(document.getElementById('pwd').value)){
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app').style.display='block';
+    document.getElementById('hdr-date').textContent = new Date().toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+    renderAll();
+  } else { document.getElementById('err').style.display='block'; }
+}
+document.getElementById('pwd').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+function doLogout(){
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('app').style.display='none';
+  document.getElementById('pwd').value='';
+}
+function openChangePwd(){
+  const cur=prompt('Current password:');
+  if(!checkPwd(cur||'')){ alert('Incorrect current password.'); return; }
+  const n1=prompt('New password:');
+  if(!n1||n1.length<6){ alert('Password must be at least 6 characters.'); return; }
+  const n2=prompt('Confirm new password:');
+  if(n1!==n2){ alert('Passwords do not match.'); return; }
+  localStorage.setItem('cc_pwd', btoa(n1));
+  alert('Password updated successfully!');
+}
+
+// ── Tabs ──────────────────────────────────────────────────────────────
+function switchTab(name, btn){
+  activeTab = name;
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  btn.classList.add('active');
+  document.getElementById('panel-'+name).classList.add('active');
+  if(name==='orientations') renderOrientations();
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────
+function pd(s){ if(!s)return null; const d=new Date(s+'T00:00:00'); return isNaN(d)?null:d; }
+function addDays(d,n){ const r=new Date(d); r.setDate(r.getDate()+n); return r; }
+function daysLeft(d){ return Math.round((d-TODAY)/86400000); }
+function fmtD(s){ const d=pd(s); if(!d)return null; return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}); }
+function chkStatus(lastStr, interval, warnDays){
+  if(!lastStr) return {status:'Pending',nextDue:null,days:null};
+  const last=pd(lastStr), next=addDays(last,interval), left=daysLeft(next);
+  return { status: left<0?'Overdue':left<=warnDays?'Due Soon':'Current', nextDue:next, days:left };
+}
+function badge(status,txt){
+  const cls={Current:'b-green','Due Soon':'b-amber',Overdue:'b-red',Pending:'b-gray',
+    CLEAR:'b-green',FLAGGED:'b-red',Clear:'b-green','Issues Found':'b-red',
+    'N/A':'b-gray',Required:'b-amber',Submitted:'b-blue',Complete:'b-green'}[status]||'b-gray';
+  return `<span class="badge ${cls}">${txt||status}</span>`;
+}
+function proofLink(url){ return url?`<a class="proof-link" href="${url}" target="_blank">📄 proof</a>`:`<span style="color:#cbd5e1;font-size:.67rem">no proof</span>`; }
+
+// ── CONFIG — replace with your actual Zapier catch hook URLs ─────────
+const ZAPIER_ORIENTATION_WEBHOOK = "https://hooks.zapier.com/hooks/catch/REPLACE_WITH_YOUR_URL/";
+// Fires when attendance is marked — Zap should find applicant in AxisCare and update their profile
+const ZAPIER_ATTENDANCE_WEBHOOK = "https://hooks.zapier.com/hooks/catch/REPLACE_WITH_YOUR_URL/attendance/";
+// Fires every time a candidate record is saved — syncs to AxisCare applicant + Google Drive Sheet
+const ZAPIER_CANDIDATE_WEBHOOK = "https://hooks.zapier.com/hooks/catch/REPLACE_WITH_YOUR_URL/candidate/";
+
+// ── DATA — localStorage-backed ─────────────────────────────────────────
+const SEED_CANDIDATES = [
+  {id:1,first:"Maria",last:"Rodriguez",phone:"4175551001",oos:"no",
+   r1n:"Bob Jones",r1s:"Positive",r2n:"Carol White",r2s:"Positive",r3n:"Dave Brown",r3s:"Pending",r4n:"Eve Davis",r4s:"Pending",
+   oig:"CLEAR",oig_date:"2026-06-20",edl:"Clear",edl_date:"2026-06-20",fcsr:"Clear",fcsr_date:"2026-06-22",fp:"N/A",fp_date:"",notes:"",
+   invite_sent:false,invite_sent_date:""},
+  {id:2,first:"James",last:"Wilson",phone:"4175551002",oos:"yes",
+   r1n:"Tom Lee",r1s:"Positive",r2n:"Sara Kim",r2s:"Conditional",r3n:"",r3s:"Pending",r4n:"",r4s:"Pending",
+   oig:"CLEAR",oig_date:"2026-06-18",edl:"Pending",edl_date:"",fcsr:"Pending",fcsr_date:"",fp:"Required",fp_date:"",notes:"Lived in Kansas 2022-2024",
+   invite_sent:false,invite_sent_date:""},
+  {id:3,first:"Tanya",last:"Brooks",phone:"4175551003",oos:"no",
+   r1n:"",r1s:"Pending",r2n:"",r2s:"Pending",r3n:"",r3s:"Pending",r4n:"",r4s:"Pending",
+   oig:"Pending",oig_date:"",edl:"Pending",edl_date:"",fcsr:"Pending",fcsr_date:"",fp:"N/A",fp_date:"",notes:"",
+   invite_sent:false,invite_sent_date:""},
+];
+const SEED_CAREGIVERS = [
+  {id:1,first:"Jane",last:"Smith",hire_date:"2025-04-01",oos:"no",
+   orient_date:"2025-04-02",alz_date:"2025-04-03",
+   ojt_date:"2025-04-20",ojt_signed:"yes",ojt_proof:"",ojt_online:"2025-04-21",
+   annual_date:"2026-04-05",annual_proof:"",
+   oig_date:"2026-03-15",oig_status:"",oig_proof:"",
+   edl_date:"2026-03-15",edl_status:"",edl_proof:"",
+   fcsr_date:"2025-12-01",fcsr_status:"",fcsr_proof:"",
+   fp:"N/A",fp_date:"",fp_proof:""},
+  {id:2,first:"Marcus",last:"Johnson",hire_date:"2025-07-15",oos:"yes",
+   orient_date:"2025-07-16",alz_date:"2025-07-17",
+   ojt_date:"2025-08-01",ojt_signed:"yes",ojt_proof:"https://drive.google.com/example",ojt_online:"2025-08-02",
+   annual_date:"2026-07-20",annual_proof:"",
+   oig_date:"2026-06-01",oig_status:"",oig_proof:"https://drive.google.com/example",
+   edl_date:"2026-06-01",edl_status:"",edl_proof:"",
+   fcsr_date:"2026-01-10",fcsr_status:"",fcsr_proof:"",
+   fp:"Clear",fp_date:"2025-07-20",fp_proof:""},
+  {id:3,first:"Angela",last:"Torres",hire_date:"2026-05-01",oos:"no",
+   orient_date:"2026-05-02",alz_date:"",
+   ojt_date:"",ojt_signed:"no",ojt_proof:"",ojt_online:"",
+   annual_date:"",annual_proof:"",
+   oig_date:"2026-06-20",oig_status:"",oig_proof:"",
+   edl_date:"",edl_status:"Pending",edl_proof:"",
+   fcsr_date:"2026-06-20",fcsr_status:"",fcsr_proof:"",
+   fp:"N/A",fp_date:"",fp_proof:""},
+  {id:4,first:"Robert",last:"Davis",hire_date:"2026-06-01",oos:"no",
+   orient_date:"",alz_date:"",
+   ojt_date:"",ojt_signed:"no",ojt_proof:"",ojt_online:"",
+   annual_date:"",annual_proof:"",
+   oig_date:"",oig_status:"Pending",oig_proof:"",
+   edl_date:"",edl_status:"Pending",edl_proof:"",
+   fcsr_date:"",fcsr_status:"Pending",fcsr_proof:"",
+   fp:"N/A",fp_date:"",fp_proof:""},
+];
+const SEED_OFFBOARDINGS = [
+  {id:1,first:"Sandra",last:"Moore",lastday:"2026-05-31",reason:"Voluntary Resignation",
+   ac:"yes",ac_date:"2026-06-01",viv:"yes",equip:"yes",pay:"yes",pay_date:"2026-06-07",exit:"yes",ben:"2026-06-30",notes:""},
+];
+
+let candidates   = JSON.parse(localStorage.getItem('cc_candidates'))   || SEED_CANDIDATES;
+let caregivers   = JSON.parse(localStorage.getItem('cc_caregivers'))   || SEED_CAREGIVERS;
+let offboardings = JSON.parse(localStorage.getItem('cc_offboardings')) || SEED_OFFBOARDINGS;
+let obId  = parseInt(localStorage.getItem('cc_ob_id')  || '10');
+let cgId  = parseInt(localStorage.getItem('cc_cg_id')  || '10');
+let offId = parseInt(localStorage.getItem('cc_off_id') || '10');
+
+function saveCandidates(){
+  localStorage.setItem('cc_candidates', JSON.stringify(candidates));
+  localStorage.setItem('cc_ob_id', String(obId));
+}
+function saveCaregivers(){
+  localStorage.setItem('cc_caregivers', JSON.stringify(caregivers));
+  localStorage.setItem('cc_cg_id', String(cgId));
+}
+function saveOffboardings(){
+  localStorage.setItem('cc_offboardings', JSON.stringify(offboardings));
+  localStorage.setItem('cc_off_id', String(offId));
+}
+
+// ── TRAINING LOGIC ────────────────────────────────────────────────────
+function trainStatus(c){
+  const hire = pd(c.hire_date);
+  const preContactDone = !!(c.orient_date && c.alz_date);
+  const thirtyDeadline = hire ? addDays(hire,30) : null;
+  const thirtyPassed = thirtyDeadline && TODAY > thirtyDeadline;
+  const ojtDone = !!(c.ojt_date && c.ojt_signed==='yes' && c.ojt_online);
+  const thirtyDone = preContactDone && ojtDone;
+  // Check OJT was within 30 days
+  let ojtOnTime = false;
+  if(ojtDone && hire && thirtyDeadline){
+    const ojtD = pd(c.ojt_date), ojtOD = pd(c.ojt_online);
+    ojtOnTime = ojtD<=thirtyDeadline && ojtOD<=thirtyDeadline;
+  }
+  // Annual: exempt if within first 12 months of hire
+  const msPerYear = 365*86400000;
+  const isFirstYear = hire && (TODAY - hire) < msPerYear;
+  let annualStatus = 'Exempt (Year 1)';
+  let annualNextDue = null;
+  if(!isFirstYear){
+    if(!c.annual_date){ annualStatus='Overdue'; }
+    else {
+      const lastA = pd(c.annual_date);
+      annualNextDue = addDays(lastA, 365);
+      const left = daysLeft(annualNextDue);
+      annualStatus = left<0?'Overdue':left<=30?'Due Soon':'Current';
+    }
+  }
+  // Overall
+  let overall;
+  if(!preContactDone) overall='Pre-Contact Blocked';
+  else if(!thirtyDone && thirtyPassed) overall='OJT Overdue';
+  else if(!thirtyDone) overall='OJT Pending';
+  else if(annualStatus==='Overdue') overall='Annual Overdue';
+  else if(annualStatus==='Due Soon') overall='Annual Due Soon';
+  else overall='Current';
+
+  return {preContactDone,thirtyDeadline,thirtyDone,thirtyPassed,ojtDone,ojtOnTime,
+          isFirstYear,annualStatus,annualNextDue,overall};
+}
+
+// ── ONBOARDING RENDER ─────────────────────────────────────────────────
+let obFilterVal='all', obSearch='';
+function obFilter(f,btn){ obFilterVal=f; document.querySelectorAll('#panel-onboarding .fb').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderOB(); }
+function obDeriveStatus(c){
+  const refs=[c.r1s,c.r2s,c.r3s,c.r4s];
+  const pos=refs.filter(r=>r==='Positive').length;
+  const neg=refs.some(r=>r==='Negative'||r==='Conditional');
+  const oigOk=c.oig==='CLEAR', edlOk=c.edl==='Clear', bgOk=c.fcsr==='Clear';
+  const fpOk=c.oos!=='yes'||(c.fp==='Clear');
+  if(c.oig==='FLAGGED'||c.edl==='Issues Found'||c.fcsr==='Issues Found'||c.fp==='Issues Found') return 'Needs Review';
+  if(pos>=2&&oigOk&&edlOk&&bgOk&&fpOk) return 'Ready for Orientation';
+  return 'Awaiting';
+}
+function renderOB(){
+  const q=((document.querySelector('#panel-onboarding input')||{value:''}).value||globalSearch).toLowerCase();
+  const today=new Date(); today.setHours(0,0,0,0);
+  const list=candidates.filter(c=>{
+    const n=`${c.first} ${c.last}`.toLowerCase();
+    const st=obDeriveStatus(c);
+    let matchF=true;
+    if(obFilterVal==='ready')       matchF=st==='Ready for Orientation';
+    else if(obFilterVal==='refs')   matchF=[c.r1s,c.r2s,c.r3s,c.r4s].some(r=>r==='Pending');
+    else if(obFilterVal==='bg')     matchF=(!c.oig||c.oig==='Pending')||(!c.edl||c.edl==='Pending')||(!c.fcsr||c.fcsr==='Pending');
+    else if(obFilterVal==='review') matchF=st==='Needs Review';
+    return (!q||n.includes(q))&&matchF;
+  });
+  const tbody=document.getElementById('ob-tbody');
+  document.getElementById('ob-empty').style.display=list.length?'none':'block';
+  if(!list.length){tbody.innerHTML='';return;}
+
+  const refBadge=s=>({Positive:'b-green',Conditional:'b-amber',Negative:'b-red',Pending:'b-gray'}[s]||'b-gray');
+  tbody.innerHTML=list.map(c=>{
+    const st=obDeriveStatus(c);
+    const stBadge=st==='Ready for Orientation'?'b-green':st==='Needs Review'?'b-red':'b-gray';
+    const fpShow=c.oos==='yes';
+    const fpBadge={Clear:'b-green',Required:'b-amber',Submitted:'b-blue','N/A':'b-gray','Issues Found':'b-red'}[c.fp]||'b-gray';
+    const daysPending = c.added ? Math.floor((today-new Date(c.added+'T00:00:00'))/86400000) : null;
+    const staleBadge = (daysPending!==null && daysPending>=7 && st==='Awaiting')
+      ? `<span class="badge b-amber" style="margin-top:3px;font-size:.62rem">⏰ ${daysPending}d pending</span>` : '';
+
+    const proofLink=(url,label)=>url?`<a class="proof-link" href="${url}" target="_blank" rel="noopener">📄 ${label}</a>`:'';
+    return `<tr>
+      <td><div class="name-cell">${c.first} ${c.last}</div>${c.oos==='yes'?'<span class="sub" style="color:#F97316">⚠ Out-of-state</span>':''}${staleBadge?`<div style="margin-top:2px">${staleBadge}</div>`:''}</td>
+      <td><span class="badge ${refBadge(c.r1s)}">${c.r1s}</span>${c.r1n?`<span class="sub">${c.r1n}</span>`:''}${proofLink(c.r1_proof,'View form')}</td>
+      <td><span class="badge ${refBadge(c.r2s)}">${c.r2s}</span>${c.r2n?`<span class="sub">${c.r2n}</span>`:''}${proofLink(c.r2_proof,'View form')}</td>
+      <td><span class="badge ${refBadge(c.r3s)}">${c.r3s}</span>${c.r3n?`<span class="sub">${c.r3n}</span>`:''}${proofLink(c.r3_proof,'View form')}</td>
+      <td><span class="badge ${refBadge(c.r4s)}">${c.r4s}</span>${c.r4n?`<span class="sub">${c.r4n}</span>`:''}${proofLink(c.r4_proof,'View form')}</td>
+      <td><div class="chk"><span class="badge ${c.oig==='CLEAR'?'b-green':c.oig==='FLAGGED'?'b-red':'b-gray'}">${c.oig||'Pending'}</span>${c.oig_date?`<span class="chk-date">${fmtD(c.oig_date)}</span>`:''}${proofLink(c.oig_proof,'View')}</div></td>
+      <td><div class="chk"><span class="badge ${c.edl==='Clear'?'b-green':c.edl==='Issues Found'?'b-red':'b-gray'}">${c.edl||'Pending'}</span>${c.edl_date?`<span class="chk-date">${fmtD(c.edl_date)}</span>`:''}${proofLink(c.edl_proof,'View')}</div></td>
+      <td><div class="chk"><span class="badge ${c.fcsr==='Clear'?'b-green':c.fcsr==='Issues Found'?'b-red':'b-gray'}">${c.fcsr||'Pending'}</span>${c.fcsr_date?`<span class="chk-date">${fmtD(c.fcsr_date)}</span>`:''}${proofLink(c.fcsr_proof,'View')}</div></td>
+      <td><div class="chk">${fpShow?`<span class="badge ${fpBadge}">${c.fp}</span>${c.fp_date?`<span class="chk-date">${fmtD(c.fp_date)}</span>`:''}${proofLink(c.fp_proof,'View')}`:`<span class="badge b-gray">Not required</span>`}</div></td>
+      <td>
+        <span class="badge ${stBadge}">${st}</span>
+        ${c.invite_sent?`<br><span class="badge" style="margin-top:4px;background:#e0faf9;color:#0e7490;font-size:.62rem">✉️ Invited ${fmtD(c.invite_sent_date)}</span>`:''}
+      </td>
+      <td><div class="acts">
+        ${st==='Ready for Orientation'&&!c.invite_sent?`<button class="ibtn" style="background:var(--teal);color:#fff;border-color:var(--teal);font-weight:600;padding:.28rem .65rem;" onclick="openInviteModal(${c.id})">📅 Invite</button>`:''}
+        ${st==='Ready for Orientation'&&c.invite_sent?`<button class="ibtn" style="color:var(--teal);border-color:var(--teal);" onclick="openInviteModal(${c.id})">📅 Re-send</button>`:''}
+        <button class="ibtn" onclick="openOBModal(${c.id})">✏️</button>
+        <button class="ibtn" onclick="delOB(${c.id})">🗑️</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+
+  // Stats
+  const total=candidates.length, ready=candidates.filter(c=>obDeriveStatus(c)==='Ready for Orientation').length,
+    review=candidates.filter(c=>obDeriveStatus(c)==='Needs Review').length,
+    wait=candidates.filter(c=>obDeriveStatus(c)==='Awaiting').length,
+    oos=candidates.filter(c=>c.oos==='yes').length;
+  document.getElementById('ob-stats').innerHTML=`
+    <div class="stat"><div class="lbl">Candidates</div><div class="val v-navy">${total}</div></div>
+    <div class="stat"><div class="lbl">Ready for Orientation</div><div class="val v-green">${ready}</div></div>
+    <div class="stat"><div class="lbl">Awaiting</div><div class="val v-amber">${wait}</div></div>
+    <div class="stat"><div class="lbl">Needs Review</div><div class="val v-red">${review}</div></div>
+    <div class="stat"><div class="lbl">Fingerprint Req.</div><div class="val v-amber">${oos}</div></div>`;
+}
+
+// ── TRAINING RENDER ───────────────────────────────────────────────────
+let trFilterVal='all';
+function trFilter(f,btn){ trFilterVal=f; document.querySelectorAll('#panel-training .fb').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderTR(); }
+function renderTR(){
+  const q=((document.querySelector('#panel-training input')||{value:''}).value||globalSearch).toLowerCase();
+  const blocked=caregivers.filter(c=>!trainStatus(c).preContactDone);
+  document.getElementById('train-alert').innerHTML=blocked.length
+    ?`<div class="alert-banner">⛔ ${blocked.length} caregiver(s) not cleared for client contact — pre-contact training incomplete: ${blocked.map(c=>`<b>${c.first} ${c.last}</b>`).join(', ')}</div>`:'' ;
+
+  const list=caregivers.filter(c=>{
+    const n=`${c.first} ${c.last}`.toLowerCase();
+    const ts=trainStatus(c);
+    const matchQ=!q||n.includes(q);
+    let matchF=true;
+    if(trFilterVal==='blocked') matchF=!ts.preContactDone;
+    else if(trFilterVal==='ojt-due') matchF=!ts.thirtyDone&&!!ts.thirtyDeadline;
+    else if(trFilterVal==='annual-due') matchF=ts.annualStatus==='Due Soon'||ts.annualStatus==='Overdue';
+    return matchQ&&matchF;
+  });
+  const tbody=document.getElementById('tr-tbody');
+  document.getElementById('tr-empty').style.display=list.length?'none':'block';
+  if(!list.length){tbody.innerHTML='';return;}
+
+  tbody.innerHTML=list.map(c=>{
+    const ts=trainStatus(c);
+    // Pre-contact cell
+    const preBadge=ts.preContactDone?'b-green':'b-red';
+    const preLabel=ts.preContactDone?'✓ Cleared':'⛔ Blocked';
+    const orientLine=c.orient_date?`<span class="chk-date">Orientation: ${fmtD(c.orient_date)} ✓</span>`:`<span class="chk-date" style="color:var(--red)">Orientation: missing</span>`;
+    const alzLine=c.alz_date?`<span class="chk-date">Alzheimer's: ${fmtD(c.alz_date)} ✓</span>`:`<span class="chk-date" style="color:var(--red)">Alzheimer's: missing</span>`;
+    // 30-day cell
+    const ddStr=ts.thirtyDeadline?ts.thirtyDeadline.toLocaleDateString('en-US',{month:'short',day:'numeric'}):'';
+    const daysLeft30=ts.thirtyDeadline?daysLeft(ts.thirtyDeadline):null;
+    let thirtyBadge, thirtyLabel;
+    if(ts.thirtyDone){ thirtyBadge='b-green'; thirtyLabel='✓ Complete'; }
+    else if(ts.thirtyPassed){ thirtyBadge='b-red'; thirtyLabel='Overdue'; }
+    else if(daysLeft30!==null&&daysLeft30<=7){ thirtyBadge='b-amber'; thirtyLabel=`Due in ${daysLeft30}d`; }
+    else { thirtyBadge='b-gray'; thirtyLabel='Pending'; }
+    const ojtLine=c.ojt_date?`<span class="chk-date">OJT in-person: ${fmtD(c.ojt_date)}${c.ojt_signed==='yes'?' ✓':' ⚠ no signature'}</span>`:`<span class="chk-date" style="color:${ts.thirtyPassed?'var(--red)':'var(--gray)'}">OJT in-person: pending</span>`;
+    const ojtOnlineLine=c.ojt_online?`<span class="chk-date">OJT online 2hr: ${fmtD(c.ojt_online)} ✓</span>`:`<span class="chk-date">OJT online 2hr: pending</span>`;
+    const proofLine=c.ojt_proof?`<a class="proof-link" href="${c.ojt_proof}" target="_blank">📄 signed proof</a>`:`<span style="color:#cbd5e1;font-size:.67rem">no proof uploaded</span>`;
+    // Annual cell
+    let annBadge,annLabel;
+    if(ts.isFirstYear){ annBadge='b-blue'; annLabel='Exempt — Year 1'; }
+    else if(ts.annualStatus==='Overdue'){ annBadge='b-red'; annLabel='Overdue'; }
+    else if(ts.annualStatus==='Due Soon'){ annBadge='b-amber'; annLabel='Due Soon'; }
+    else if(ts.annualStatus==='Current'){ annBadge='b-green'; annLabel='Current'; }
+    else { annBadge='b-gray'; annLabel='Not on file'; }
+    const annDateLine=c.annual_date?`<span class="chk-date">Last: ${fmtD(c.annual_date)}${ts.annualNextDue?` · Next: ${ts.annualNextDue.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}`:''}</span>`:
+      (ts.isFirstYear?'<span class="chk-date">Required from year 2</span>':'<span class="chk-date">No training on file</span>');
+    const annProofLine=c.annual_proof?`<a class="proof-link" href="${c.annual_proof}" target="_blank">📄 proof</a>`:'';
+    // Overall
+    const oBadge={Current:'b-green','Annual Due Soon':'b-amber','Annual Overdue':'b-red','OJT Overdue':'b-red','OJT Pending':'b-gray','Pre-Contact Blocked':'b-red'}[ts.overall]||'b-gray';
+    return `<tr>
+      <td><div class="name-cell">${c.first} ${c.last}</div></td>
+      <td><span class="chk-date">${fmtD(c.hire_date)||'—'}</span></td>
+      <td><div class="chk"><span class="badge ${preBadge}">${preLabel}</span>${orientLine}${alzLine}</div></td>
+      <td><div class="chk"><span class="badge ${thirtyBadge}">${thirtyLabel}</span><span class="chk-date">Deadline: ${ddStr||'—'}</span>${ojtLine}${ojtOnlineLine}${proofLine}</div></td>
+      <td><div class="chk"><span class="badge ${annBadge}">${annLabel}</span>${annDateLine}${annProofLine}</div></td>
+      <td><span class="badge ${oBadge}">${ts.overall}</span></td>
+      <td><div class="acts"><button class="ibtn" onclick="openCGModal('training',${c.id})">✏️</button></div></td>
+    </tr>`;
+  }).join('');
+
+  // Stats
+  const bl=caregivers.filter(c=>!trainStatus(c).preContactDone).length;
+  const ojtOv=caregivers.filter(c=>{const ts=trainStatus(c);return !ts.thirtyDone&&ts.thirtyPassed;}).length;
+  const annOv=caregivers.filter(c=>trainStatus(c).annualStatus==='Overdue').length;
+  const allOk=caregivers.filter(c=>trainStatus(c).overall==='Current').length;
+  document.getElementById('tr-stats').innerHTML=`
+    <div class="stat"><div class="lbl">Total Caregivers</div><div class="val v-navy">${caregivers.length}</div></div>
+    <div class="stat"><div class="lbl">Pre-Contact Blocked</div><div class="val v-red">${bl}</div></div>
+    <div class="stat"><div class="lbl">OJT Overdue</div><div class="val v-red">${ojtOv}</div></div>
+    <div class="stat"><div class="lbl">Annual Overdue</div><div class="val v-red">${annOv}</div></div>
+    <div class="stat"><div class="lbl">All Current</div><div class="val v-green">${allOk}</div></div>`;
+}
+
+// ── ACTIVE COMPLIANCE RENDER ──────────────────────────────────────────
+let acFilterVal='all';
+function acFilter(f,btn){ acFilterVal=f; document.querySelectorAll('#panel-compliance .fb').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderAC(); }
+function acWorst(c){
+  const o=chkStatus(c.oig_date,90,14), e=chkStatus(c.edl_date,90,14), f=chkStatus(c.fcsr_date,365,30);
+  const ss=[o.status,e.status,f.status];
+  if(ss.includes('Overdue')) return 'overdue';
+  if(ss.includes('Due Soon')) return 'duesoon';
+  if(ss.every(s=>s==='Current')) return 'current';
+  return 'pending';
+}
+function renderAC(){
+  const q=((document.querySelector('#panel-compliance input')||{value:''}).value||globalSearch).toLowerCase();
+  const list=caregivers.filter(c=>{
+    const n=`${c.first} ${c.last}`.toLowerCase();
+    const w=acWorst(c);
+    return (!q||n.includes(q))&&(acFilterVal==='all'||w===acFilterVal);
+  });
+  const tbody=document.getElementById('ac-tbody');
+  document.getElementById('ac-empty').style.display=list.length?'none':'block';
+  if(!list.length){tbody.innerHTML='';acSelected.clear();updateACBulkBar();return;}
+
+  tbody.innerHTML=list.map(c=>{
+    const o=chkStatus(c.oig_date,90,14), e=chkStatus(c.edl_date,90,14), f=chkStatus(c.fcsr_date,365,30);
+    function compCell(lastStr,info,overrideStatus,proof){
+      const s=overrideStatus||info.status;
+      const nd=info.nextDue?info.nextDue.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'';
+      const dl=info.days!==null?(info.days<0?`${Math.abs(info.days)}d overdue`:`due in ${info.days}d`):'';
+      return `<div class="chk">${badge(s)}${lastStr?`<span class="chk-date">Last: ${fmtD(lastStr)}${dl?' · '+dl:''}</span>`:''}${nd&&s!=='Pending'?`<span class="chk-date">Next: ${nd}</span>`:''}<span>${proofLink(proof)}</span></div>`;
+    }
+    const fpBadge={Clear:'b-green',Required:'b-amber',Submitted:'b-blue','N/A':'b-gray','Issues':'b-red'}[c.fp]||'b-gray';
+    const chkd = acSelected.has(c.id) ? 'checked' : '';
+    return `<tr>
+      <td style="width:36px"><input type="checkbox" ${chkd} onchange="toggleACSelect(${c.id},this.checked)" style="accent-color:var(--teal);cursor:pointer"></td>
+      <td><div class="name-cell">${c.first} ${c.last}</div>${c.oos==='yes'?'<span class="sub" style="color:#F97316">⚠ Out-of-state</span>':''}</td>
+      <td>${compCell(c.oig_date,o,c.oig_status,c.oig_proof)}</td>
+      <td>${compCell(c.edl_date,e,c.edl_status,c.edl_proof)}</td>
+      <td>${compCell(c.fcsr_date,f,c.fcsr_status,c.fcsr_proof)}</td>
+      <td><div class="chk">${c.oos==='yes'?`<span class="badge ${fpBadge}">${c.fp}</span>${c.fp_date?`<span class="chk-date">${fmtD(c.fp_date)}</span>`:''}${proofLink(c.fp_proof)}`:`<span class="badge b-gray">Not required</span>`}</div></td>
+      <td><div class="acts"><button class="ibtn" onclick="openCGModal('compliance',${c.id})">✏️</button></div></td>
+    </tr>`;
+  }).join('');
+  updateACBulkBar();
+
+  const total=caregivers.length;
+  const od=caregivers.filter(c=>acWorst(c)==='overdue').length;
+  const ds=caregivers.filter(c=>acWorst(c)==='duesoon').length;
+  const cur=caregivers.filter(c=>acWorst(c)==='current').length;
+  const oigOd=caregivers.filter(c=>chkStatus(c.oig_date,90,14).status==='Overdue'||(c.oig_status==='Overdue')).length;
+  document.getElementById('ac-stats').innerHTML=`
+    <div class="stat"><div class="lbl">Active Caregivers</div><div class="val v-navy">${total}</div></div>
+    <div class="stat"><div class="lbl">All Current</div><div class="val v-green">${cur}</div></div>
+    <div class="stat"><div class="lbl">Due Soon</div><div class="val v-amber">${ds}</div></div>
+    <div class="stat"><div class="lbl">Overdue</div><div class="val v-red">${od}</div></div>
+    <div class="stat"><div class="lbl">OIG Overdue</div><div class="val v-red">${oigOd}</div></div>`;
+}
+
+// ── OFFBOARDING RENDER ────────────────────────────────────────────────
+let offFilterVal='all';
+function offFilter(f,btn){ offFilterVal=f; document.querySelectorAll('#panel-offboarding .fb').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderOFF(); }
+function offComplete(o){ return o.ac==='yes'&&o.viv==='yes'&&(o.equip==='yes'||o.equip==='na')&&o.pay==='yes'&&(o.exit==='yes'||o.exit==='na'); }
+function renderOFF(){
+  const q=((document.querySelector('#panel-offboarding input')||{value:''}).value||globalSearch).toLowerCase();
+  const list=offboardings.filter(o=>{
+    const n=`${o.first} ${o.last}`.toLowerCase();
+    const done=offComplete(o);
+    return (!q||n.includes(q))&&(offFilterVal==='all'||(offFilterVal==='complete'&&done)||(offFilterVal==='active'&&!done));
+  });
+  const tbody=document.getElementById('off-tbody');
+  document.getElementById('off-empty').style.display=list.length?'none':'block';
+  if(!list.length){tbody.innerHTML='';return;}
+
+  function chkBadge(v,yeslabel='Done'){ return v==='yes'?badge('Current',yeslabel):v==='na'?badge('Pending','N/A'):badge('Pending','Pending'); }
+  tbody.innerHTML=list.map(o=>{
+    const done=offComplete(o);
+    return `<tr>
+      <td><div class="name-cell">${o.first} ${o.last}</div><span class="sub">${o.reason||''}</span></td>
+      <td>${fmtD(o.lastday)||'—'}</td>
+      <td>${chkBadge(o.ac)}<span class="sub">${o.ac_date?fmtD(o.ac_date):''}</span></td>
+      <td>${chkBadge(o.viv)}</td>
+      <td>${chkBadge(o.equip)}</td>
+      <td>${chkBadge(o.pay)}<span class="sub">${o.pay_date?fmtD(o.pay_date):''}</span></td>
+      <td>${chkBadge(o.exit,'Done')}</td>
+      <td>${o.ben?fmtD(o.ben):'—'}</td>
+      <td><span style="font-size:.78rem">${o.notes||'—'}</span></td>
+      <td><div class="acts"><button class="ibtn" onclick="openOFFModal(${o.id})">✏️</button><button class="ibtn" onclick="delOFF(${o.id})">🗑️</button></div></td>
+    </tr>`;
+  }).join('');
+
+  const total=offboardings.length, done=offboardings.filter(offComplete).length, inprog=total-done;
+  document.getElementById('off-stats').innerHTML=`
+    <div class="stat"><div class="lbl">Total</div><div class="val v-navy">${total}</div></div>
+    <div class="stat"><div class="lbl">In Progress</div><div class="val v-amber">${inprog}</div></div>
+    <div class="stat"><div class="lbl">Complete</div><div class="val v-green">${done}</div></div>`;
+}
+
+function renderAlerts(){
+  const alerts = [];
+
+  // Background & References
+  const readyCount = candidates.filter(c=>obDeriveStatus(c)==='Ready for Orientation'&&!c.invite_sent).length;
+  const reviewCount = candidates.filter(c=>obDeriveStatus(c)==='Needs Review').length;
+  if(readyCount) alerts.push({color:'#22C55E', text:`${readyCount} candidate${readyCount>1?'s':''} ready for orientation — invite pending`, tab:'onboarding'});
+  if(reviewCount) alerts.push({color:'#EF4444', text:`${reviewCount} candidate${reviewCount>1?'s':''} need review`, tab:'onboarding'});
+
+  // Training
+  const blocked = caregivers.filter(c=>{ const ts=trainStatus(c); return ts.overall==='Pre-Contact Blocked'; }).length;
+  const ojtOverdue = caregivers.filter(c=>{ const ts=trainStatus(c); return ts.thirtyStatus==='Overdue'; }).length;
+  if(blocked) alerts.push({color:'#EF4444', text:`${blocked} caregiver${blocked>1?'s':''} blocked from client contact`, tab:'training'});
+  if(ojtOverdue) alerts.push({color:'#F97316', text:`${ojtOverdue} caregiver${ojtOverdue>1?'s':''} OJT overdue`, tab:'training'});
+
+  // Active Compliance
+  let acOverdue=0, acDueSoon=0;
+  caregivers.forEach(c=>{
+    const oig=chkStatus(c.oig_date,90,14), edl=chkStatus(c.edl_date,90,14), fcsr=chkStatus(c.fcsr_date,365,30);
+    if([oig,edl,fcsr].some(s=>s.status==='Overdue')) acOverdue++;
+    else if([oig,edl,fcsr].some(s=>s.status==='Due Soon')) acDueSoon++;
+  });
+  if(acOverdue) alerts.push({color:'#EF4444', text:`${acOverdue} caregiver${acOverdue>1?'s':''} overdue for compliance check`, tab:'compliance'});
+  if(acDueSoon) alerts.push({color:'#F97316', text:`${acDueSoon} caregiver${acDueSoon>1?'s':''} due for check within 14 days`, tab:'compliance'});
+
+  // Orientations
+  const now=new Date(); now.setHours(0,0,0,0);
+  const upcomingSess = orientSessions.filter(s=>new Date(s.date+'T00:00:00')>=now);
+  const totalOpen = upcomingSess.reduce((a,s)=>a+Math.max(0,parseInt(s.capacity)-(s.bookings||[]).length),0);
+  if(upcomingSess.length && totalOpen>0) alerts.push({color:'#54BDB8', text:`${upcomingSess.length} orientation session${upcomingSess.length>1?'s':''} scheduled — ${totalOpen} spot${totalOpen>1?'s':''} available`, tab:'orientations'});
+
+  const strip = document.getElementById('alert-strip');
+  if(!strip) return;
+  if(!alerts.length){ strip.style.display='none'; return; }
+  strip.style.display='flex';
+  strip.innerHTML = alerts.map(a=>`
+    <span onclick="switchTab('${a.tab}', document.querySelector('.tab-bar .tab:nth-child(${['onboarding','orientations','training','compliance','offboarding'].indexOf(a.tab)+1})'))" style="cursor:pointer;background:rgba(255,255,255,.1);border-left:3px solid ${a.color};border-radius:0 6px 6px 0;padding:.25rem .65rem;font-size:.72rem;color:#fff;font-weight:500;white-space:nowrap;transition:.15s" onmouseover="this.style.background='rgba(255,255,255,.18)'" onmouseout="this.style.background='rgba(255,255,255,.1)'">${a.text}</span>
+  `).join('');
+}
+
+function renderAll(){ renderOB(); renderTR(); renderAC(); renderOFF(); renderOrientations(); renderAlerts(); }
+
+// ── MODALS ────────────────────────────────────────────────────────────
+let editingOB=null, editingCG=null, editingOFF=null;
+
+function openOBModal(id=null){
+  editingOB=id;
+  document.getElementById('ob-modal-title').textContent=id?'Edit Candidate':'Add Candidate';
+  const c=id?candidates.find(x=>x.id===id):null;
+  const g=k=>document.getElementById(k);
+  if(c){
+    g('ob-first').value=c.first;g('ob-last').value=c.last;g('ob-phone').value=c.phone||'';g('ob-oos').value=c.oos||'';
+    g('ob-r1n').value=c.r1n;g('ob-r1s').value=c.r1s;g('ob-r2n').value=c.r2n;g('ob-r2s').value=c.r2s;
+    g('ob-r3n').value=c.r3n;g('ob-r3s').value=c.r3s;g('ob-r4n').value=c.r4n;g('ob-r4s').value=c.r4s;
+    g('ob-r1-proof').value=c.r1_proof||'';g('ob-r2-proof').value=c.r2_proof||'';
+    g('ob-r3-proof').value=c.r3_proof||'';g('ob-r4-proof').value=c.r4_proof||'';
+    g('ob-oig').value=c.oig;g('ob-oig-date').value=c.oig_date;g('ob-oig-proof').value=c.oig_proof||'';
+    g('ob-edl').value=c.edl||'Pending';g('ob-edl-date').value=c.edl_date||'';g('ob-edl-proof').value=c.edl_proof||'';
+    g('ob-fcsr').value=c.fcsr;g('ob-fcsr-date').value=c.fcsr_date;g('ob-fcsr-proof').value=c.fcsr_proof||'';
+    g('ob-fp').value=c.fp;g('ob-fp-date').value=c.fp_date;g('ob-fp-proof').value=c.fp_proof||'';g('ob-notes').value=c.notes||'';
+  } else {
+    ['ob-first','ob-last','ob-phone','ob-r1n','ob-r2n','ob-r3n','ob-r4n','ob-oig-date','ob-edl-date','ob-fcsr-date','ob-fp-date','ob-notes',
+     'ob-r1-proof','ob-r2-proof','ob-r3-proof','ob-r4-proof','ob-oig-proof','ob-edl-proof','ob-fcsr-proof','ob-fp-proof'].forEach(k=>g(k).value='');
+    g('ob-oos').value='';g('ob-r1s').value='Pending';g('ob-r2s').value='Pending';g('ob-r3s').value='Pending';g('ob-r4s').value='Pending';
+    g('ob-oig').value='Pending';g('ob-edl').value='Pending';g('ob-fcsr').value='Pending';g('ob-fp').value='N/A';
+  }
+  document.getElementById('ob-modal').classList.add('open');
+}
+function saveOB(){
+  const g=k=>document.getElementById(k).value;
+  if(!g('ob-first')||!g('ob-last')){alert('Name required.');return;}
+  const d={first:g('ob-first'),last:g('ob-last'),phone:g('ob-phone'),oos:g('ob-oos'),
+    r1n:g('ob-r1n'),r1s:g('ob-r1s'),r2n:g('ob-r2n'),r2s:g('ob-r2s'),r3n:g('ob-r3n'),r3s:g('ob-r3s'),r4n:g('ob-r4n'),r4s:g('ob-r4s'),
+    r1_proof:g('ob-r1-proof'),r2_proof:g('ob-r2-proof'),r3_proof:g('ob-r3-proof'),r4_proof:g('ob-r4-proof'),
+    oig:g('ob-oig'),oig_date:g('ob-oig-date'),oig_proof:g('ob-oig-proof'),
+    edl:g('ob-edl'),edl_date:g('ob-edl-date'),edl_proof:g('ob-edl-proof'),
+    fcsr:g('ob-fcsr'),fcsr_date:g('ob-fcsr-date'),fcsr_proof:g('ob-fcsr-proof'),
+    fp:g('ob-fp'),fp_date:g('ob-fp-date'),fp_proof:g('ob-fp-proof'),notes:g('ob-notes')};
+  let saved;
+  if(editingOB){ const i=candidates.findIndex(x=>x.id===editingOB); candidates[i]={...candidates[i],...d}; saved=candidates[i]; }
+  else { const rec={id:obId++,...d,invite_sent:false,invite_sent_date:'',added:new Date().toISOString().split('T')[0]}; candidates.push(rec); saved=rec; }
+  saveCandidates(); closeModal('ob-modal'); renderOB(); renderAlerts();
+  // Push to AxisCare + Google Drive via Zapier
+  fetch(ZAPIER_CANDIDATE_WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+    candidate_id: saved.id,
+    first: saved.first, last: saved.last, full_name:`${saved.first} ${saved.last}`,
+    phone: saved.phone||'',
+    r1_name:saved.r1n||'', r1_status:saved.r1s||'', r1_proof:saved.r1_proof||'',
+    r2_name:saved.r2n||'', r2_status:saved.r2s||'', r2_proof:saved.r2_proof||'',
+    r3_name:saved.r3n||'', r3_status:saved.r3s||'', r3_proof:saved.r3_proof||'',
+    r4_name:saved.r4n||'', r4_status:saved.r4s||'', r4_proof:saved.r4_proof||'',
+    oig_status:saved.oig||'', oig_date:saved.oig_date||'', oig_proof:saved.oig_proof||'',
+    edl_status:saved.edl||'', edl_date:saved.edl_date||'', edl_proof:saved.edl_proof||'',
+    fcsr_status:saved.fcsr||'', fcsr_date:saved.fcsr_date||'', fcsr_proof:saved.fcsr_proof||'',
+    fp_status:saved.fp||'', fp_date:saved.fp_date||'', fp_proof:saved.fp_proof||'',
+    overall_status:obDeriveStatus(saved),
+    notes:saved.notes||'',
+    timestamp:new Date().toISOString()
+  })}).catch(e=>console.warn('Candidate webhook (CORS expected):', e));
+}
+
+// ── ORIENTATION INVITE ────────────────────────────────────────────────
+let invitingId=null;
+function fmtPhone(p){ const d=p.replace(/\D/g,''); return d.length===10?`+1${d}`:d.length===11&&d[0]==='1'?`+${d}`:`+1${d}`; }
+
+function buildBookingUrl(c){
+  const now=new Date(); now.setHours(0,0,0,0);
+  const available=orientSessions.filter(s=>{
+    const sd=new Date(s.date+'T00:00:00');
+    return sd>=now && (s.bookings||[]).length<parseInt(s.capacity);
+  }).sort((a,b)=>a.date.localeCompare(b.date));
+  const encoded=btoa(JSON.stringify(available.map(s=>({
+    id:s.id, date:s.date, time:s.time,
+    remote:s.is_remote==='yes', link:s.video_link||'',
+    notes:s.notes||'', spots:parseInt(s.capacity)-(s.bookings||[]).length
+  }))));
+  const base = window.location.href.replace(/[^/]*$/, '');
+  return `${base}orientation-booking.html?sessions=${encoded}&first=${encodeURIComponent(c.first)}&last=${encodeURIComponent(c.last)}&phone=${encodeURIComponent(c.phone||'')}`;
+}
+
+function buildInviteMsg(c, url){
+  return `Hi ${c.first}! Congratulations — you've been cleared to join Caring Companions! 🎉 Please choose your orientation date here: ${url}\n\nQuestions? Call/text (417) 234-8494. We can't wait to meet you!`;
+}
+
+function openInviteModal(id){
+  invitingId=id;
+  const c=candidates.find(x=>x.id===id);
+  document.getElementById('inv-name').textContent=`${c.first} ${c.last}`;
+  document.getElementById('inv-phone').textContent=c.phone?fmtPhone(c.phone):'⚠ No phone — add in Edit';
+
+  // Show available sessions
+  const now=new Date(); now.setHours(0,0,0,0);
+  const avail=orientSessions.filter(s=>{
+    const sd=new Date(s.date+'T00:00:00');
+    return sd>=now && (s.bookings||[]).length<parseInt(s.capacity);
+  }).sort((a,b)=>a.date.localeCompare(b.date));
+  const sessEl=document.getElementById('inv-sessions-list');
+  if(!avail.length){
+    sessEl.innerHTML='<div style="padding:.75rem 1rem;font-size:.78rem;color:var(--gray);font-style:italic">No upcoming sessions with open spots. <a href="#" onclick="closeModal(\'invite-modal\');switchTab(\'orientations\',document.querySelector(\'.tab-bar .tab:nth-child(2)\'));return false" style="color:var(--teal);font-weight:600">Add a session first →</a></div>';
+  } else {
+    sessEl.innerHTML=avail.map(s=>{
+      const d=new Date(s.date+'T00:00:00');
+      const dow=d.toLocaleDateString('en-US',{weekday:'short'});
+      const dt=d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+      const spots=parseInt(s.capacity)-(s.bookings||[]).length;
+      return `<div style="display:flex;align-items:center;justify-content:space-between;padding:.5rem .85rem;border-bottom:1px solid var(--border);font-size:.78rem">
+        <span><strong>${dow} ${dt}</strong> · ${fmtTime(s.time)} · ${s.is_remote==='yes'?'Remote':'In-Person'}</span>
+        <span style="color:var(--green-text);font-weight:600">${spots} spot${spots>1?'s':''} open</span>
+      </div>`;
+    }).join('');
+  }
+
+  const url = buildBookingUrl(c);
+  document.getElementById('inv-msg').textContent = buildInviteMsg(c, url);
+  document.getElementById('inv-copy-link').onclick=(e)=>{
+    e.preventDefault();
+    navigator.clipboard.writeText(url).then(()=>{
+      document.getElementById('inv-copy-link').textContent='✅ Copied!';
+      setTimeout(()=>document.getElementById('inv-copy-link').textContent='Copy link only',2000);
+    });
+  };
+  document.getElementById('inv-sending').style.display='none';
+  document.getElementById('inv-actions').style.display='flex';
+  document.getElementById('invite-modal').classList.add('open');
+}
+
+async function confirmSendInvite(){
+  const c=candidates.find(x=>x.id===invitingId);
+  if(!c.phone){alert('No phone number on file. Please edit the candidate and add a cell number first.');return;}
+  document.getElementById('inv-sending').style.display='block';
+  document.getElementById('inv-actions').style.display='none';
+  const url=buildBookingUrl(c);
+  const payload={
+    candidate_first: c.first,
+    candidate_last:  c.last,
+    phone:           fmtPhone(c.phone),
+    message:         buildInviteMsg(c, url),
+    booking_url:     url,
+    sent_by:         'Compliance Hub',
+    sent_at:         new Date().toISOString(),
+  };
+  try {
+    await fetch(ZAPIER_ORIENTATION_WEBHOOK, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+  } catch(e){ console.warn('Webhook error (CORS expected — Zapier still receives it):', e); }
+  const i=candidates.findIndex(x=>x.id===invitingId);
+  candidates[i].invite_sent=true;
+  candidates[i].invite_sent_date=new Date().toISOString().split('T')[0];
+  saveCandidates(); closeModal('invite-modal'); renderOB(); renderAlerts();
+}
+function delOB(id){ const c=candidates.find(x=>x.id===id); if(confirm(`Remove ${c.first} ${c.last}?`)){ candidates=candidates.filter(x=>x.id!==id); saveCandidates(); renderOB(); renderAlerts(); } }
+
+let cgReturnTab='training';
+function openCGModal(tab,id=null){ cgReturnTab=tab; editingCG=id;
+  document.getElementById('cg-modal-title').textContent=id?'Edit Caregiver':'Add Caregiver';
+  const c=id?caregivers.find(x=>x.id===id):null;
+  const g=k=>document.getElementById(k);
+  const fields=['cg-first','cg-last','cg-hire','cg-orient','cg-alz','cg-ojt-date','cg-ojt-proof','cg-ojt-online','cg-annual','cg-annual-proof','cg-oig','cg-oig-proof','cg-edl','cg-edl-proof','cg-fcsr','cg-fcsr-proof','cg-fp-date','cg-fp-proof'];
+  if(c){
+    g('cg-first').value=c.first;g('cg-last').value=c.last;g('cg-hire').value=c.hire_date||'';
+    g('cg-oos').value=c.oos||'no';g('cg-orient').value=c.orient_date||'';g('cg-alz').value=c.alz_date||'';
+    g('cg-ojt-date').value=c.ojt_date||'';g('cg-ojt-signed').value=c.ojt_signed||'no';
+    g('cg-ojt-proof').value=c.ojt_proof||'';g('cg-ojt-online').value=c.ojt_online||'';
+    g('cg-annual').value=c.annual_date||'';g('cg-annual-proof').value=c.annual_proof||'';
+    g('cg-oig').value=c.oig_date||'';g('cg-oig-s').value=c.oig_status||'';g('cg-oig-proof').value=c.oig_proof||'';
+    g('cg-edl').value=c.edl_date||'';g('cg-edl-s').value=c.edl_status||'';g('cg-edl-proof').value=c.edl_proof||'';
+    g('cg-fcsr').value=c.fcsr_date||'';g('cg-fcsr-s').value=c.fcsr_status||'';g('cg-fcsr-proof').value=c.fcsr_proof||'';
+    g('cg-fp').value=c.fp||'N/A';g('cg-fp-date').value=c.fp_date||'';g('cg-fp-proof').value=c.fp_proof||'';
+  } else { fields.forEach(k=>g(k).value=''); g('cg-oos').value='no';g('cg-ojt-signed').value='no';g('cg-oig-s').value='';g('cg-edl-s').value='';g('cg-fcsr-s').value='';g('cg-fp').value='N/A'; }
+  document.getElementById('cg-modal').classList.add('open');
+}
+function saveCG(){
+  const g=k=>document.getElementById(k).value;
+  if(!g('cg-first')||!g('cg-last')){alert('Name required.');return;}
+  const d={first:g('cg-first'),last:g('cg-last'),hire_date:g('cg-hire'),oos:g('cg-oos'),
+    orient_date:g('cg-orient'),alz_date:g('cg-alz'),
+    ojt_date:g('cg-ojt-date'),ojt_signed:g('cg-ojt-signed'),ojt_proof:g('cg-ojt-proof'),ojt_online:g('cg-ojt-online'),
+    annual_date:g('cg-annual'),annual_proof:g('cg-annual-proof'),
+    oig_date:g('cg-oig'),oig_status:g('cg-oig-s'),oig_proof:g('cg-oig-proof'),
+    edl_date:g('cg-edl'),edl_status:g('cg-edl-s'),edl_proof:g('cg-edl-proof'),
+    fcsr_date:g('cg-fcsr'),fcsr_status:g('cg-fcsr-s'),fcsr_proof:g('cg-fcsr-proof'),
+    fp:g('cg-fp'),fp_date:g('cg-fp-date'),fp_proof:g('cg-fp-proof')};
+  if(editingCG){ const i=caregivers.findIndex(x=>x.id===editingCG); caregivers[i]={...caregivers[i],...d}; }
+  else { caregivers.push({id:cgId++,...d}); }
+  saveCaregivers(); closeModal('cg-modal'); renderAlerts();
+  if(cgReturnTab==='training') renderTR(); else renderAC();
+}
+
+function openOFFModal(id=null){ editingOFF=id;
+  document.getElementById('off-modal-title').textContent=id?'Edit Offboarding':'Add Offboarding Record';
+  const g=k=>document.getElementById(k);
+  const o=id?offboardings.find(x=>x.id===id):null;
+  if(o){
+    g('off-first').value=o.first;g('off-last').value=o.last;g('off-lastday').value=o.lastday||'';
+    g('off-reason').value=o.reason||'';g('off-ac').value=o.ac;g('off-ac-date').value=o.ac_date||'';
+    g('off-viv').value=o.viv;g('off-equip').value=o.equip;g('off-pay').value=o.pay;
+    g('off-pay-date').value=o.pay_date||'';g('off-exit').value=o.exit;g('off-ben').value=o.ben||'';g('off-notes').value=o.notes||'';
+  } else {
+    ['off-first','off-last','off-lastday','off-ac-date','off-pay-date','off-ben','off-notes'].forEach(k=>g(k).value='');
+    g('off-reason').value='';g('off-ac').value='no';g('off-viv').value='no';g('off-equip').value='no';g('off-pay').value='no';g('off-exit').value='no';
+  }
+  document.getElementById('off-modal').classList.add('open');
+}
+function saveOFF(){
+  const g=k=>document.getElementById(k).value;
+  if(!g('off-first')||!g('off-last')){alert('Name required.');return;}
+  const d={first:g('off-first'),last:g('off-last'),lastday:g('off-lastday'),reason:g('off-reason'),
+    ac:g('off-ac'),ac_date:g('off-ac-date'),viv:g('off-viv'),equip:g('off-equip'),
+    pay:g('off-pay'),pay_date:g('off-pay-date'),exit:g('off-exit'),ben:g('off-ben'),notes:g('off-notes')};
+  if(editingOFF){ const i=offboardings.findIndex(x=>x.id===editingOFF); offboardings[i]={...offboardings[i],...d}; }
+  else { offboardings.push({id:offId++,...d}); }
+  saveOffboardings(); closeModal('off-modal'); renderOFF();
+}
+function delOFF(id){ const o=offboardings.find(x=>x.id===id); if(confirm(`Remove ${o.first} ${o.last}?`)){ offboardings=offboardings.filter(x=>x.id!==id); saveOffboardings(); renderOFF(); } }
+
+function closeModal(id){ document.getElementById(id).classList.remove('open'); editingOB=null; editingCG=null; editingOFF=null; editingOrient=null; editScope='single'; pendingEditId=null; pendingDeleteId=null; pendingCancelSessId=null; pendingCancelBookingIdx=null; }
+document.querySelectorAll('.overlay').forEach(o=>o.addEventListener('click',e=>{ if(e.target===o) closeModal(o.id); }));
+document.getElementById('or-date').addEventListener('change',()=>{ if(document.getElementById('or-recur').value!=='none') updateRecurPreview(); });
+document.getElementById('or-recur-count').addEventListener('change', updateRecurPreview);
+document.getElementById('or-recur-end-date').addEventListener('change', updateRecurPreview);
+
+// ── ORIENTATIONS ──────────────────────────────────────────────────────
+const ORIENT_ADDR = '1331 N Stewart Ave Ste B, Springfield MO 65802';
+const BOOKING_PAGE = 'orientation-booking.html';
+// Replace with your actual Zapier webhook for orientation bookings:
+const ZAPIER_BOOKING_WEBHOOK = 'https://hooks.zapier.com/hooks/catch/REPLACE_ME/orient/';
+
+let orientSessions = JSON.parse(localStorage.getItem('cc_orient_sessions') || '[]');
+let orientId = parseInt(localStorage.getItem('cc_orient_id') || '1');
+let calViewMonth = new Date(); calViewMonth.setDate(1); calViewMonth.setHours(0,0,0,0);
+let calSelectedDate = null;
+let editingOrient = null;
+let editScope = 'single';   // 'single' | 'future'
+let pendingEditId = null;
+let pendingDeleteId = null;
+let blCandidateId = null;
+let showPastSessions = false;
+let pendingCancelSessId = null;
+let pendingCancelBookingIdx = null;
+let activeTab = 'onboarding';
+let globalSearch = '';
+let acSelected = new Set();
+
+function saveOrientStore(){
+  localStorage.setItem('cc_orient_sessions', JSON.stringify(orientSessions));
+  localStorage.setItem('cc_orient_id', String(orientId));
+}
+
+function fmtTime(t){
+  if(!t) return '';
+  const [h,m] = t.split(':').map(Number);
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  return `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
+}
+function fmtSessionDate(dateStr){
+  const d = new Date(dateStr + 'T00:00:00');
+  return d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric',year:'numeric'});
+}
+function sessDateShort(dateStr){
+  const d = new Date(dateStr + 'T00:00:00');
+  return {
+    dow: d.toLocaleDateString('en-US',{weekday:'short'}),
+    date: d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})
+  };
+}
+
+function renderOrientations(){
+  renderCalendar();
+  renderSessionsList();
+  // Stats
+  const now = new Date(); now.setHours(0,0,0,0);
+  const upcoming = orientSessions.filter(s => new Date(s.date+'T00:00:00') >= now);
+  const totalSpots = upcoming.reduce((a,s)=>a+parseInt(s.capacity),0);
+  const booked = upcoming.reduce((a,s)=>a+(s.bookings||[]).length,0);
+  const available = totalSpots - booked;
+  const full = upcoming.filter(s=>(s.bookings||[]).length>=parseInt(s.capacity)).length;
+  document.getElementById('or-stats').innerHTML = `
+    <div class="stat"><div class="lbl">Upcoming</div><div class="val v-navy">${upcoming.length}</div></div>
+    <div class="stat"><div class="lbl">Booked</div><div class="val v-amber">${booked}</div></div>
+    <div class="stat"><div class="lbl">Available</div><div class="val v-green">${available}</div></div>
+    <div class="stat"><div class="lbl">Full</div><div class="val v-red">${full}</div></div>`;
+}
+
+function renderCalendar(){
+  const label = calViewMonth.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+  document.getElementById('cal-month-label').textContent = label;
+  const year = calViewMonth.getFullYear();
+  const month = calViewMonth.getMonth();
+  const firstDay = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month+1, 0).getDate();
+  const now = new Date(); now.setHours(0,0,0,0);
+
+  // Build a set of dates that have sessions
+  const sessionDates = {};
+  orientSessions.forEach(s => {
+    const sd = new Date(s.date+'T00:00:00');
+    if(sd.getFullYear()===year && sd.getMonth()===month){
+      const key = s.date;
+      if(!sessionDates[key]) sessionDates[key] = 0;
+      sessionDates[key]++;
+    }
+  });
+
+  let html = '';
+  // Blanks before first day
+  for(let i=0;i<firstDay;i++) html += '<div class="cal-day other"></div>';
+  for(let d=1;d<=daysInMonth;d++){
+    const dateStr = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const date = new Date(dateStr+'T00:00:00');
+    const isToday = date.getTime()===now.getTime();
+    const isPast = date < now;
+    const hasSess = sessionDates[dateStr];
+    const isSelected = calSelectedDate===dateStr;
+    let cls = 'cal-day';
+    if(isPast) cls += ' past';
+    if(isToday) cls += ' is-today';
+    if(hasSess && !isPast) cls += ' has-session';
+    if(isSelected) cls += ' selected';
+    const cnt = hasSess ? `<div class="day-cnt">${hasSess}</div>` : '';
+    const numEl = isToday ? `<div class="day-num"><span>${d}</span></div>` : `<div class="day-num">${d}</div>`;
+    html += `<div class="${cls}" onclick="calClickDay('${dateStr}')">${numEl}${cnt}</div>`;
+  }
+  document.getElementById('cal-days').innerHTML = html;
+}
+
+function calClickDay(dateStr){
+  if(calSelectedDate===dateStr){ calSelectedDate=null; }
+  else { calSelectedDate=dateStr; }
+  renderCalendar();
+  renderSessionsList();
+}
+function calPrev(){ calViewMonth.setMonth(calViewMonth.getMonth()-1); calSelectedDate=null; renderCalendar(); renderSessionsList(); }
+function calNext(){ calViewMonth.setMonth(calViewMonth.getMonth()+1); calSelectedDate=null; renderCalendar(); renderSessionsList(); }
+
+function setPastView(isPast){
+  showPastSessions = isPast;
+  document.getElementById('pts-upcoming').classList.toggle('active',!isPast);
+  document.getElementById('pts-past').classList.toggle('active',isPast);
+  calSelectedDate = null;
+  renderCalendar();
+  renderSessionsList();
+}
+function renderSessionsList(){
+  const now = new Date(); now.setHours(0,0,0,0);
+  let sessions;
+  if(showPastSessions){
+    sessions = orientSessions.filter(s => new Date(s.date+'T00:00:00') < now);
+    sessions.sort((a,b)=>b.date.localeCompare(a.date)); // newest-past first
+  } else {
+    sessions = orientSessions.filter(s => new Date(s.date+'T00:00:00') >= now);
+    sessions.sort((a,b)=>a.date.localeCompare(b.date)||(a.time||'').localeCompare(b.time||''));
+  }
+
+  const titleEl = document.getElementById('or-list-title');
+  const countEl = document.getElementById('or-session-count');
+  if(calSelectedDate){
+    sessions = sessions.filter(s=>s.date===calSelectedDate);
+    const d = new Date(calSelectedDate+'T00:00:00');
+    titleEl.textContent = d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  } else {
+    titleEl.textContent = showPastSessions ? 'Past Sessions — Mark Attendance' : 'All Upcoming Sessions';
+  }
+  countEl.textContent = `${sessions.length} session${sessions.length!==1?'s':''}`;
+
+  const el = document.getElementById('or-sessions-list');
+  if(!sessions.length){
+    el.innerHTML = '<div class="empty" style="padding:2rem;text-align:center;color:var(--gray)">' +
+      (calSelectedDate ? 'No sessions on this day. <a href="#" onclick="openOrientModalOnDate(\''+calSelectedDate+'\');return false">Add one?</a>' : 'No upcoming sessions scheduled.') +
+      '</div>';
+    return;
+  }
+
+  el.innerHTML = sessions.map(s=>{
+    const cap = parseInt(s.capacity);
+    const booked = (s.bookings||[]).length;
+    const avail = cap - booked;
+    const pct = Math.round((booked/cap)*100);
+    const isFull = avail===0;
+    const {dow,date} = sessDateShort(s.date);
+    const locLabel = s.is_remote==='yes'
+      ? `<span class="badge b-blue" style="font-size:.65rem">🖥 Remote</span>${s.video_link?` <a href="${s.video_link}" target="_blank" style="font-size:.68rem;color:var(--teal)">Join link</a>`:''}`
+      : `📍 ${ORIENT_ADDR}`;
+    const chips = (s.bookings||[]).length
+      ? (s.bookings||[]).map(b=>`<span class="booking-chip">${b.first} ${b.last}</span>`).join('')
+      : '<span style="font-size:.7rem;color:var(--gray);font-style:italic">No bookings yet</span>';
+    const fullBadge = isFull ? '<span class="badge b-red" style="font-size:.65rem;margin-left:.4rem">FULL</span>' : '';
+    const seriesBadge = s.series_id ? '<span class="badge b-navy" style="font-size:.62rem;margin-top:.3rem">🔁 Series</span>' : '';
+    return `<div class="session-card${calSelectedDate&&s.date===calSelectedDate?' highlighted':''}">
+      <div class="sess-top">
+        <div class="sess-date-block">
+          <div class="sess-dow">${dow}</div>
+          <div class="sess-date">${date}${fullBadge}</div>
+          <div class="sess-time">${fmtTime(s.time)} · 2 hours</div>
+          ${seriesBadge}
+        </div>
+        <div class="sess-actions">
+          <button class="ibtn" title="Edit" onclick="openOrientModal(${s.id})">✏️</button>
+          <button class="ibtn" title="Delete" onclick="deleteOrient(${s.id})">🗑️</button>
+        </div>
+      </div>
+      <div class="sess-loc">${locLabel}</div>
+      <div class="cap-row">
+        <div class="cap-text">${booked}/${cap} booked</div>
+        <div class="cap-bar"><div class="cap-fill${isFull?' full':''}" style="width:${pct}%"></div></div>
+        <div style="font-size:.7rem;color:${isFull?'#F97316':'var(--green-text)'};font-weight:600">${isFull?'Full':`${avail} open`}</div>
+      </div>
+      ${!showPastSessions ? `<div class="sess-bookings">${chips}</div>` : `
+        <div style="margin-bottom:.55rem">
+          ${(s.bookings||[]).length===0
+            ? '<span style="font-size:.7rem;color:var(--gray);font-style:italic">No bookings recorded</span>'
+            : (s.bookings||[]).map((b,bi)=>{
+                const ao=b.attend_status;
+                const attBadge=ao==='attended'?'<span class="badge b-green" style="font-size:.68rem">✅ Attended</span>'
+                  :ao==='noshow'?'<span class="badge b-red" style="font-size:.68rem">🚫 No-Show</span>'
+                  :ao==='rescheduled'?'<span class="badge b-amber" style="font-size:.68rem">📅 Rescheduled</span>'
+                  :ao==='canceled'?`<span class="badge b-gray" style="font-size:.68rem">❌ Canceled${b.cancel_method?` (${b.cancel_method==='call'?'📞':b.cancel_method==='text'?'💬':'❓'})`:''}</span>${b.cancel_reason?`<span class="chk-date" style="margin-left:.3rem">${b.cancel_reason}</span>`:''}`:''
+                ;
+                // Find matching candidate for Promote button
+                const matchCand = candidates.find(c=>
+                  `${c.first} ${c.last}`.toLowerCase()===`${b.first} ${b.last}`.toLowerCase()
+                  ||(b.candidate_id && c.id===b.candidate_id));
+                const promoteBtn = ao==='attended' && matchCand
+                  ? `<button class="att-btn" style="background:#22C55E;color:#fff;border:none;font-size:.68rem;padding:.22rem .5rem;white-space:nowrap" onclick="promoteToCaregiver(${matchCand.id})">🎓 Promote</button>` : '';
+                const btns = ao ? `${promoteBtn}<button class="att-btn" style="font-size:.65rem;padding:.15rem .35rem" onclick="markAttendance(${s.id},${bi},null)" title="Undo">↩</button>`
+                  : `<button class="att-btn att-attended" onclick="markAttendance(${s.id},${bi},'attended')">✅</button>
+                     <button class="att-btn att-noshow" onclick="markAttendance(${s.id},${bi},'noshow')">🚫</button>
+                     <button class="att-btn att-rescheduled" onclick="markAttendance(${s.id},${bi},'rescheduled')">📅</button>
+                     <button class="att-btn att-canceled" onclick="openCancelModal(${s.id},${bi})">❌</button>`;
+                return `<div class="attend-booking"><span class="attend-name">${b.first} ${b.last}</span><div style="display:flex;align-items:center;gap:.3rem;flex-wrap:wrap">${attBadge}<div class="attend-btns">${btns}</div></div></div>`;
+              }).join('')
+          }
+        </div>
+      `}
+      ${s.notes?`<div style="font-size:.71rem;color:var(--gray);margin-bottom:.55rem;font-style:italic">📝 ${s.notes}</div>`:''}
+      ${!showPastSessions?`<div class="sess-link-row">
+        <button class="copy-link-btn" onclick="openBookingLinkModal(${s.id})">🔗 Copy Booking Link</button>
+        ${!isFull?`<button class="copy-link-btn" style="background:var(--navy)" onclick="addManualBooking(${s.id})">+ Add Booking</button>`:''}
+      </div>`:''}
+    </div>`;
+  }).join('');
+}
+
+function toggleRecurFields(){
+  const val = document.getElementById('or-recur').value;
+  const show = val !== 'none';
+  document.getElementById('or-recur-fields').style.display = show ? 'block' : 'none';
+  document.getElementById('or-save-btn').textContent = show ? 'Create Sessions' : 'Save Session';
+  if(show) updateRecurPreview();
+}
+function toggleRecurEnd(){
+  const type = document.getElementById('or-recur-end-type').value;
+  document.getElementById('or-recur-count-grp').style.display = type==='count' ? 'block' : 'none';
+  document.getElementById('or-recur-date-grp').style.display  = type==='date'  ? 'block' : 'none';
+  updateRecurPreview();
+}
+function updateRecurPreview(){
+  const dates = calcRecurDates();
+  const el = document.getElementById('or-recur-preview');
+  if(!dates.length){ el.textContent=''; return; }
+  const fmt = d => new Date(d+'T00:00:00').toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+  el.innerHTML = `<strong>${dates.length} session${dates.length!==1?'s':''} will be created:</strong><br>` +
+    dates.map(d=>`• ${fmt(d)}`).join('<br>');
+}
+function calcRecurDates(){
+  const startStr = document.getElementById('or-date').value;
+  const recur    = document.getElementById('or-recur').value;
+  if(!startStr || recur==='none') return [];
+  const endType  = document.getElementById('or-recur-end-type').value;
+  const maxCount = parseInt(document.getElementById('or-recur-count').value)||4;
+  const endDateStr = document.getElementById('or-recur-end-date').value;
+
+  const intervalDays = recur==='weekly' ? 7 : recur==='biweekly' ? 14 : 0;
+  const dates = [startStr];
+  let cur = new Date(startStr+'T00:00:00');
+
+  if(recur === 'monthly'){
+    const limit = endType==='count' ? maxCount : 52;
+    const endD  = endType==='date' && endDateStr ? new Date(endDateStr+'T00:00:00') : null;
+    for(let i=1; i<limit; i++){
+      const next = new Date(cur);
+      next.setMonth(next.getMonth()+1);
+      if(endD && next > endD) break;
+      const ds = next.toISOString().split('T')[0];
+      dates.push(ds);
+      cur = next;
+      if(dates.length >= limit) break;
+    }
+  } else {
+    const limit = endType==='count' ? maxCount : 104;
+    const endD  = endType==='date' && endDateStr ? new Date(endDateStr+'T00:00:00') : null;
+    for(let i=1; i<limit; i++){
+      const next = new Date(cur);
+      next.setDate(next.getDate() + intervalDays);
+      if(endD && next > endD) break;
+      dates.push(next.toISOString().split('T')[0]);
+      cur = next;
+      if(dates.length >= limit) break;
+    }
+  }
+  return dates;
+}
+function openOrientModalWithScope(scope){
+  editScope = scope;
+  closeModal('edit-scope-modal');
+  _doOpenOrientModal(pendingEditId);
+}
+function openOrientModal(id=null){
+  if(id){
+    const s = orientSessions.find(x=>x.id===id);
+    if(s && s.series_id){
+      const hasFuture = orientSessions.some(x=>x.series_id===s.series_id && x.date>=s.date && x.id!==id);
+      if(hasFuture){
+        pendingEditId = id;
+        document.getElementById('edit-scope-modal').classList.add('open');
+        return;
+      }
+    }
+  }
+  editScope = 'single';
+  _doOpenOrientModal(id);
+}
+function _doOpenOrientModal(id){
+  editingOrient=id;
+  document.getElementById('orient-modal-title').textContent = id ? 'Edit Orientation Session' : 'Add Orientation Session';
+  // Reset recurrence UI
+  document.getElementById('or-recur').value='none';
+  document.getElementById('or-recur-fields').style.display='none';
+  document.getElementById('or-recur-end-type').value='count';
+  document.getElementById('or-recur-count').value='4';
+  document.getElementById('or-recur-end-date').value='';
+  document.getElementById('or-recur-count-grp').style.display='block';
+  document.getElementById('or-recur-date-grp').style.display='none';
+  document.getElementById('or-recur-preview').innerHTML='';
+  document.getElementById('or-save-btn').textContent='Save Session';
+  // Recurrence only for new sessions
+  document.getElementById('or-recur-grp').style.display = id ? 'none' : 'block';
+
+  if(id){
+    const s=orientSessions.find(x=>x.id===id);
+    document.getElementById('or-date').value=s.date||'';
+    document.getElementById('or-time').value=s.time||'10:00';
+    document.getElementById('or-cap').value=s.capacity||'6';
+    document.getElementById('or-remote').value=s.is_remote||'no';
+    document.getElementById('or-video-link').value=s.video_link||'';
+    document.getElementById('or-notes-field').value=s.notes||'';
+    document.getElementById('or-link-grp').style.display=s.is_remote==='yes'?'block':'none';
+  } else {
+    document.getElementById('or-date').value='';
+    document.getElementById('or-time').value='10:00';
+    document.getElementById('or-cap').value='6';
+    document.getElementById('or-remote').value='no';
+    document.getElementById('or-video-link').value='';
+    document.getElementById('or-notes-field').value='';
+    document.getElementById('or-link-grp').style.display='none';
+  }
+  document.getElementById('orient-modal').classList.add('open');
+}
+function openOrientModalOnDate(dateStr){
+  openOrientModal();
+  document.getElementById('or-date').value=dateStr;
+}
+function saveOrient(){
+  const g=k=>document.getElementById(k).value;
+  if(!g('or-date')||!g('or-time')){ alert('Date and time are required.'); return; }
+  const base={
+    time:g('or-time'), capacity:g('or-cap'),
+    is_remote:g('or-remote'), video_link:g('or-video-link'), notes:g('or-notes-field')
+  };
+  if(editingOrient){
+    if(editScope==='future'){
+      // Update this session and all later sessions in the same series
+      const sess=orientSessions.find(x=>x.id===editingOrient);
+      if(sess && sess.series_id){
+        orientSessions=orientSessions.map(s=>{
+          if(s.series_id===sess.series_id && s.date>=sess.date){
+            return {...s, ...base}; // keep date, id, bookings; update time/cap/location etc
+          }
+          return s;
+        });
+      } else {
+        // No series_id (shouldn't happen), fall back to single edit
+        const i=orientSessions.findIndex(x=>x.id===editingOrient);
+        orientSessions[i]={...orientSessions[i],...base, date:g('or-date')};
+      }
+    } else {
+      // Editing single session only
+      const i=orientSessions.findIndex(x=>x.id===editingOrient);
+      orientSessions[i]={...orientSessions[i],...base, date:g('or-date')};
+    }
+  } else {
+    const recur = g('or-recur');
+    const dates = recur==='none' ? [g('or-date')] : calcRecurDates();
+    if(!dates.length){ alert('No valid dates generated. Check the date and recurrence settings.'); return; }
+    // Tag recurring batches with a shared series_id so future edits can span the series
+    const seriesId = dates.length>1 ? Date.now() : null;
+    dates.forEach(date=>{
+      orientSessions.push({id:orientId++, bookings:[], ...base, date, ...(seriesId?{series_id:seriesId}:{})});
+    });
+  }
+  saveOrientStore();
+  closeModal('orient-modal');
+  renderOrientations();
+}
+function deleteOrient(id){
+  const s=orientSessions.find(x=>x.id===id);
+  if(!s) return;
+  if(s.series_id){
+    const hasFuture=orientSessions.some(x=>x.series_id===s.series_id && x.date>=s.date && x.id!==id);
+    if(hasFuture){
+      pendingDeleteId=id;
+      document.getElementById('delete-scope-modal').classList.add('open');
+      return;
+    }
+  }
+  const {dow,date}=sessDateShort(s.date);
+  if(!confirm(`Delete the ${dow} ${date} at ${fmtTime(s.time)} session?`)) return;
+  orientSessions=orientSessions.filter(x=>x.id!==id);
+  saveOrientStore(); renderOrientations();
+}
+function deleteOrientConfirm(scope){
+  closeModal('delete-scope-modal');
+  const s=orientSessions.find(x=>x.id===pendingDeleteId);
+  if(!s){pendingDeleteId=null;return;}
+  if(scope==='future'){
+    const seriesId=s.series_id, sessDate=s.date;
+    const count=orientSessions.filter(x=>x.series_id===seriesId && x.date>=sessDate).length;
+    if(!confirm(`Delete ${count} sessions (this and all future in this series)?`)){pendingDeleteId=null;return;}
+    orientSessions=orientSessions.filter(x=>!(x.series_id===seriesId && x.date>=sessDate));
+  } else {
+    const {dow,date}=sessDateShort(s.date);
+    if(!confirm(`Delete just the ${dow} ${date} session?`)){pendingDeleteId=null;return;}
+    orientSessions=orientSessions.filter(x=>x.id!==pendingDeleteId);
+  }
+  pendingDeleteId=null;
+  saveOrientStore(); renderOrientations();
+}
+
+// ── Attendance marking ────────────────────────────────────────────────
+function markAttendance(sessId, bookingIdx, status){
+  const s = orientSessions.find(x=>x.id===sessId);
+  if(!s||!s.bookings||!s.bookings[bookingIdx]) return;
+  const b = s.bookings[bookingIdx];
+  b.attend_status = status;
+  if(!status){ b.cancel_method=null; b.cancel_reason=''; }
+  // Sync outcome to matching candidate record
+  const cIdx = candidates.findIndex(c=>
+    `${c.first} ${c.last}`.toLowerCase()===`${b.first} ${b.last}`.toLowerCase()
+    || (b.candidate_id && c.id===b.candidate_id)
+  );
+  if(cIdx!==-1){
+    candidates[cIdx].orient_outcome = status;
+    candidates[cIdx].orient_session_date = status ? s.date : '';
+    if(!status){ candidates[cIdx].cancel_method=null; candidates[cIdx].cancel_reason=''; }
+    saveCandidates();
+  }
+  // Push to AxisCare via Zapier
+  if(status){
+    const outcomeLabel={attended:'Attended',noshow:'No-Show',rescheduled:'Rescheduled'}[status]||status;
+    fetch(ZAPIER_ATTENDANCE_WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+      candidate_first:b.first, candidate_last:b.last, candidate_phone:b.phone||'',
+      outcome:status, outcome_label:outcomeLabel,
+      session_date:s.date, session_time:s.time||'',
+      timestamp:new Date().toISOString()
+    })}).catch(e=>console.warn('Attendance webhook (CORS expected):', e));
+  }
+  saveOrientStore();
+  renderSessionsList();
+}
+function openCancelModal(sessId, bookingIdx){
+  pendingCancelSessId = sessId;
+  pendingCancelBookingIdx = bookingIdx;
+  const s = orientSessions.find(x=>x.id===sessId);
+  const b = s && s.bookings && s.bookings[bookingIdx];
+  document.getElementById('cancel-modal-name').textContent = b ? `${b.first} ${b.last}` : 'this candidate';
+  document.getElementById('cancel-reason-input').value = b && b.cancel_reason ? b.cancel_reason : '';
+  document.querySelectorAll('input[name="cancel-method"]').forEach(r=>{
+    r.checked = b && b.cancel_method ? r.value===b.cancel_method : r.value==='call';
+  });
+  document.getElementById('cancel-modal').classList.add('open');
+}
+function saveCancelDetails(){
+  const s = orientSessions.find(x=>x.id===pendingCancelSessId);
+  if(!s||!s.bookings||s.bookings[pendingCancelBookingIdx]===undefined) { closeModal('cancel-modal'); return; }
+  const b = s.bookings[pendingCancelBookingIdx];
+  const method = document.querySelector('input[name="cancel-method"]:checked')?.value || 'other';
+  const reason = document.getElementById('cancel-reason-input').value.trim();
+  b.attend_status = 'canceled';
+  b.cancel_method = method;
+  b.cancel_reason = reason;
+  // Sync to candidate
+  const cIdx = candidates.findIndex(c=>
+    `${c.first} ${c.last}`.toLowerCase()===`${b.first} ${b.last}`.toLowerCase()
+    || (b.candidate_id && c.id===b.candidate_id)
+  );
+  if(cIdx!==-1){
+    candidates[cIdx].orient_outcome = 'canceled';
+    candidates[cIdx].orient_session_date = s.date;
+    candidates[cIdx].cancel_method = method;
+    candidates[cIdx].cancel_reason = reason;
+    saveCandidates();
+  }
+  // Push cancellation details to AxisCare via Zapier
+  const methodLabel={call:'Called us',text:'Texted us',other:'Other/Unknown'}[method]||method;
+  fetch(ZAPIER_ATTENDANCE_WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+    candidate_first:b.first, candidate_last:b.last, candidate_phone:b.phone||'',
+    outcome:'canceled', outcome_label:'Canceled',
+    cancel_method:method, cancel_method_label:methodLabel,
+    cancel_reason:reason,
+    session_date:s.date, session_time:s.time||'',
+    timestamp:new Date().toISOString()
+  })}).catch(e=>console.warn('Attendance webhook (CORS expected):', e));
+  saveOrientStore();
+  closeModal('cancel-modal');
+  renderSessionsList();
+}
+
+// ── Promote / Close Out / Reopen ──────────────────────────────────────
+function promoteToCaregiver(candidateId){
+  const c = candidates.find(x=>x.id===candidateId);
+  if(!c) return;
+  if(!confirm(`Promote ${c.first} ${c.last} to caregiver?\n\nThey will be added to Training & Active Compliance and removed from Background & References.`)) return;
+  const hireDate = c.orient_session_date || new Date().toISOString().split('T')[0];
+  caregivers.push({
+    id: cgId++, first: c.first, last: c.last,
+    hire_date: hireDate, oos: c.oos||'no',
+    orient_date: hireDate, alz_date: '',
+    ojt_date: '', ojt_signed: 'no', ojt_proof: '', ojt_online: '',
+    annual_date: '', annual_proof: '', annual_online: '',
+    oig_date: c.oig_date||'', oig_status: '', oig_proof: '',
+    edl_date: c.edl_date||'', edl_status: '', edl_proof: '',
+    fcsr_date: c.fcsr_date||'', fcsr_status: '', fcsr_proof: '',
+    fp: c.fp||'N/A', fp_date: c.fp_date||'', fp_proof: ''
+  });
+  saveCaregivers();
+  candidates = candidates.filter(x=>x.id!==candidateId);
+  saveCandidates();
+  renderOB(); renderTR(); renderAC();
+  alert(`🎉 ${c.first} ${c.last} has been promoted! They now appear in Training and Active Compliance.`);
+}
+function closeOutCandidate(candidateId){
+  const c = candidates.find(x=>x.id===candidateId);
+  if(!c||!confirm(`Close out ${c.first} ${c.last}?\n\nThey will be hidden from regular views. You can reopen them anytime.`)) return;
+  const i = candidates.findIndex(x=>x.id===candidateId);
+  candidates[i].closed_out = true;
+  saveCandidates(); renderOB();
+}
+function reopenCandidate(candidateId){
+  const i = candidates.findIndex(x=>x.id===candidateId);
+  if(i===-1) return;
+  candidates[i].closed_out = false;
+  candidates[i].orient_outcome = null;
+  candidates[i].orient_session_date = '';
+  saveCandidates(); renderOB();
+}
+
+// ── Bulk compliance actions ───────────────────────────────────────────
+function toggleACSelect(id, checked){
+  if(checked) acSelected.add(id); else acSelected.delete(id);
+  updateACBulkBar();
+}
+function toggleACSelectAll(checked){
+  const visibleIds = [...document.querySelectorAll('#ac-tbody tr')].map(tr=>{
+    const chk=tr.querySelector('input[type=checkbox]');
+    return chk ? parseInt(chk.getAttribute('onchange').match(/\d+/)[0]) : null;
+  }).filter(Boolean);
+  if(checked) visibleIds.forEach(id=>acSelected.add(id));
+  else acSelected.clear();
+  renderAC();
+}
+function updateACBulkBar(){
+  const bar=document.getElementById('ac-bulk-bar');
+  const cnt=document.getElementById('ac-bulk-count');
+  if(!bar) return;
+  if(acSelected.size>0){
+    bar.style.display='flex';
+    cnt.textContent=`${acSelected.size} selected`;
+    // Round top corners on tbl-wrap to match bar
+    document.getElementById('ac-tbl-wrap').style.borderRadius='0 0 12px 12px';
+  } else {
+    bar.style.display='none';
+    document.getElementById('ac-tbl-wrap').style.borderRadius='12px';
+    const allChk=document.getElementById('ac-chk-all');
+    if(allChk) allChk.checked=false;
+  }
+}
+function bulkMarkCheck(type){
+  if(!acSelected.size){ alert('No caregivers selected.'); return; }
+  const today=new Date().toISOString().split('T')[0];
+  const label={oig:'OIG',edl:'EDL',fcsr:'FCSR'}[type];
+  if(!confirm(`Mark OIG/EDL/FCSR checked today for ${acSelected.size} caregiver(s)?\n\nThis sets ${label} date to ${today} and status to Current.`.replace('OIG/EDL/FCSR',label))) return;
+  acSelected.forEach(id=>{
+    const i=caregivers.findIndex(x=>x.id===id);
+    if(i===-1) return;
+    if(type==='oig')  { caregivers[i].oig_date=today; caregivers[i].oig_status=''; }
+    if(type==='edl')  { caregivers[i].edl_date=today; caregivers[i].edl_status=''; }
+    if(type==='fcsr') { caregivers[i].fcsr_date=today; caregivers[i].fcsr_status=''; }
+  });
+  saveCaregivers();
+  acSelected.clear();
+  renderAC();
+}
+
+// ── CSV Export ────────────────────────────────────────────────────────
+function exportComplianceCSV(){
+  const today=new Date(); today.setHours(0,0,0,0);
+  const rows=[['Name','Hire Date','OIG Last Check','OIG Status','EDL Last Check','EDL Status','FCSR Last Check','FCSR Status','Fingerprint','Overall']];
+  caregivers.forEach(c=>{
+    const o=chkStatus(c.oig_date,90,14), e=chkStatus(c.edl_date,90,14), f=chkStatus(c.fcsr_date,365,30);
+    rows.push([
+      `${c.first} ${c.last}`,
+      c.hire_date||'',
+      c.oig_date||'', c.oig_status||o.status,
+      c.edl_date||'', c.edl_status||e.status,
+      c.fcsr_date||'', c.fcsr_status||f.status,
+      c.fp||'N/A',
+      acWorst(c)
+    ]);
+  });
+  const csv=rows.map(r=>r.map(v=>`"${String(v).replace(/"/g,'""')}"`).join(',')).join('\n');
+  const a=document.createElement('a');
+  a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download=`compliance_${new Date().toISOString().split('T')[0]}.csv`;
+  a.click();
+}
+
+// ── Global search ─────────────────────────────────────────────────────
+function onGlobalSearch(val){
+  globalSearch = val.toLowerCase();
+  const renders={onboarding:renderOB,training:renderTR,compliance:renderAC,offboarding:renderOFF};
+  if(renders[activeTab]) renders[activeTab]();
+}
+function addManualBooking(sessId){
+  const first=prompt('Candidate first name:'); if(!first) return;
+  const last=prompt('Candidate last name:'); if(!last) return;
+  const phone=prompt('Candidate phone (optional):','') || '';
+  const s=orientSessions.find(x=>x.id===sessId);
+  if(!s.bookings) s.bookings=[];
+  if(s.bookings.length>=parseInt(s.capacity)){ alert('This session is full.'); return; }
+  s.bookings.push({first,last,phone,booked_at:new Date().toISOString().split('T')[0]});
+  saveOrientStore(); renderOrientations(); renderAlerts();
+}
+
+// Booking link generation
+function openBookingLinkModal(sessId){
+  const sess = orientSessions.find(x=>x.id===sessId);
+  if(!sess){ alert('Session not found.'); return; }
+  // Build available sessions for this link (all upcoming with spots)
+  const now=new Date(); now.setHours(0,0,0,0);
+  const available=orientSessions.filter(s=>{
+    const sd=new Date(s.date+'T00:00:00');
+    return sd>=now && (s.bookings||[]).length<parseInt(s.capacity);
+  }).sort((a,b)=>a.date.localeCompare(b.date));
+  const encoded=btoa(JSON.stringify(available.map(s=>({
+    id:s.id, date:s.date, time:s.time,
+    remote:s.is_remote==='yes', link:s.video_link||'',
+    notes:s.notes||'',
+    spots:parseInt(s.capacity)-(s.bookings||[]).length
+  }))));
+  const url=`${window.location.href.replace('Compliance_Hub.html','').replace(/\?.*$/,'').replace(/#.*$/,'')}orientation-booking.html?sessions=${encoded}`;
+  document.getElementById('bl-cand-name').textContent='Booking link for all available sessions';
+  document.getElementById('bl-url').textContent=url;
+  document.getElementById('booking-link-modal').classList.add('open');
+}
+function copyBLToClipboard(){
+  const url=document.getElementById('bl-url').textContent;
+  navigator.clipboard.writeText(url).then(()=>{
+    const btn=document.querySelector('#booking-link-modal .btn-save');
+    btn.textContent='✅ Copied!'; btn.style.background='var(--green)';
+    setTimeout(()=>{ btn.textContent='📋 Copy Link'; btn.style.background='var(--teal)'; },2000);
+  });
+}
+</script>
+</body>
+</html>
