@@ -278,8 +278,8 @@ td{padding:.7rem .9rem;font-size:.83rem;vertical-align:middle}
       <div class="controls">
         <input type="text" placeholder="Search caregiver..." oninput="renderTR()">
         <button class="fb active" onclick="trFilter('all',this)">All</button>
-        <button class="fb" onclick="trFilter('blocked',this)">⛔ Pre-Contact Blocked</button>
-        <button class="fb" onclick="trFilter('ojt-due',this)">30-Day Due</button>
+        <button class="fb" onclick="trFilter('blocked',this)">⛔ Client Contact Blocked</button>
+        <button class="fb" onclick="trFilter('ojt-due',this)">30-Day Training Due</button>
         <button class="fb" onclick="trFilter('annual-due',this)">Annual Due</button>
         <button class="add-btn" onclick="openCGModal('training')">+ Add Caregiver</button>
       </div>
@@ -287,9 +287,9 @@ td{padding:.7rem .9rem;font-size:.83rem;vertical-align:middle}
         <table>
           <thead><tr>
             <th>Caregiver</th><th>Hire Date</th>
-            <th>Pre-Contact (6hr) <span style="font-weight:400;opacity:.7">before clients</span></th>
+            <th>Agency Orientation + ALZ <span style="font-weight:400;opacity:.7">6hr — before clients</span></th>
             <th>First Client Contact</th>
-            <th>30-Day OJT (12hr total) <span style="font-weight:400;opacity:.7">deadline</span></th>
+            <th>OJT In-Home + Online <span style="font-weight:400;opacity:.7">6hr — all 12hr due within 30 days</span></th>
             <th>Annual 5hr <span style="font-weight:400;opacity:.7">yr 2+</span></th>
             <th>Overall</th><th>Actions</th>
           </tr></thead>
@@ -641,24 +641,26 @@ td{padding:.7rem .9rem;font-size:.83rem;vertical-align:middle}
       <div class="grp"><label>Lived outside MO 5 yrs?</label>
         <select id="cg-oos"><option value="no">No</option><option value="yes">Yes — fingerprint required</option></select>
       </div>
-      <div class="sect-lbl">Training — Pre-Contact (6hr required before clients)</div>
+      <div class="sect-lbl">Basic Training — 12 Hours Total (all must be completed within 30 days of employment)</div>
+      <p style="font-size:.75rem;color:var(--gray);margin:-.25rem 0 .75rem;padding:0 .1rem">⚠ Agency Orientation and ALZ/Dementia must also be completed <strong>before first client contact</strong>.</p>
       <div class="grp"><label>Agency Orientation (2hr) — Date</label><input type="date" id="cg-orient"></div>
-      <div class="grp"><label>Alzheimer's &amp; Dementia — Date</label><input type="date" id="cg-alz"></div>
-      <div class="grp"><label>ALZ Training Hours Completed</label><input type="number" id="cg-alz-hrs" min="0" max="20" placeholder="e.g. 4"></div>
-      <div class="sect-lbl">First Client Contact</div>
-      <div class="grp"><label>Date of First Client Contact <span style="font-size:.72rem;color:var(--teal)">(required in training file)</span></label><input type="date" id="cg-first-contact"></div>
-      <div class="sect-lbl">Training — 30-Day Orientation (12hr total within 30 days)</div>
-      <div class="grp"><label>Orientation Total Hours Completed</label><input type="number" id="cg-orient-hrs" min="0" max="20" placeholder="Required: 12"></div>
-      <div class="grp"><label>OJT In-Person/On-Site — Date</label><input type="date" id="cg-ojt-date"></div>
-      <div class="grp"><label>OJT Signed Proof on File?</label>
+      <div class="grp"><label>Agency Orientation Signed Proof</label><input type="url" id="cg-orient-proof" placeholder="https://drive.google.com/..."></div>
+      <div class="grp"><label>Alzheimer's &amp; Dementia Training (4hr) — Date</label><input type="date" id="cg-alz"></div>
+      <div class="grp"><label>ALZ Training Hours Completed</label><input type="number" id="cg-alz-hrs" min="0" max="20" placeholder="Required: 4"></div>
+      <div class="grp"><label>ALZ Training Signed Proof</label><input type="url" id="cg-alz-proof" placeholder="https://drive.google.com/..."></div>
+      <div class="grp"><label>OJT In-Home/In-Office (4hr) — Date</label><input type="date" id="cg-ojt-date"></div>
+      <div class="grp"><label>OJT In-Person Signed Proof</label>
         <select id="cg-ojt-signed"><option value="no">No</option><option value="yes">Yes</option></select>
       </div>
-      <div class="grp"><label>OJT Proof Link (Google Drive)</label><input type="url" id="cg-ojt-proof" placeholder="https://drive.google.com/..."></div>
-      <div class="grp"><label>OJT Online (2hr) — Date</label><input type="date" id="cg-ojt-online"></div>
-      <div class="sect-lbl">Training — Annual In-Service (5hr/yr, Year 2+ only)</div>
+      <div class="grp"><label>OJT In-Person Proof Link (Google Drive)</label><input type="url" id="cg-ojt-proof" placeholder="https://drive.google.com/..."></div>
+      <div class="grp"><label>OJT Online Training (2hr) — Date</label><input type="date" id="cg-ojt-online"></div>
+      <div class="grp"><label>OJT Online Signed Proof</label><input type="url" id="cg-ojt-online-proof" placeholder="https://drive.google.com/..."></div>
+      <div class="sect-lbl">First Client Contact</div>
+      <div class="grp"><label>Date of First Client Contact <span style="font-size:.72rem;color:var(--teal)">(required in training file)</span></label><input type="date" id="cg-first-contact"></div>
+      <div class="sect-lbl">Annual In-Service Training (5hr/yr, Year 2+ only)</div>
       <div class="grp"><label>Last Annual Training Date</label><input type="date" id="cg-annual"></div>
       <div class="grp"><label>Annual In-Service Hours Completed</label><input type="number" id="cg-annual-hrs" min="0" max="20" placeholder="Required: 5"></div>
-      <div class="grp"><label>Annual Proof Link</label><input type="url" id="cg-annual-proof" placeholder="https://drive.google.com/..."></div>
+      <div class="grp"><label>Annual Training Signed Proof</label><input type="url" id="cg-annual-proof" placeholder="https://drive.google.com/..."></div>
       <div class="sect-lbl">Signed Acknowledgments (Required in Employee File)</div>
       <div class="grp"><label>Code of Ethics Signed Date</label><input type="date" id="cg-ethics-date"></div>
       <div class="grp"><label>Code of Ethics Proof Link</label><input type="url" id="cg-ethics-proof" placeholder="https://drive.google.com/..."></div>
@@ -1023,8 +1025,8 @@ function trainStatus(c){
   }
   // Overall
   let overall;
-  if(!preContactDone) overall='Pre-Contact Blocked';
-  else if(!thirtyDone && thirtyPassed) overall='OJT Overdue';
+  if(!preContactDone) overall='Client Contact Blocked';
+  else if(!thirtyDone && thirtyPassed) overall='Training Overdue';
   else if(!thirtyDone) overall='OJT Pending';
   else if(annualStatus==='Overdue') overall='Annual Overdue';
   else if(annualStatus==='Due Soon') overall='Annual Due Soon';
@@ -1139,8 +1141,8 @@ function renderTR(){
     // Pre-contact cell
     const preBadge=ts.preContactDone?'b-green':'b-red';
     const preLabel=ts.preContactDone?'✓ Cleared':'⛔ Blocked';
-    const orientLine=c.orient_date?`<span class="chk-date">Orientation: ${fmtD(c.orient_date)} ✓</span>`:`<span class="chk-date" style="color:var(--red)">Orientation: missing</span>`;
-    const alzLine=c.alz_date?`<span class="chk-date">Alzheimer's: ${fmtD(c.alz_date)} ✓</span>`:`<span class="chk-date" style="color:var(--red)">Alzheimer's: missing</span>`;
+    const orientLine=c.orient_date?`<span class="chk-date">Agency Orientation (2hr): ${fmtD(c.orient_date)} ✓${c.orient_proof?` <a class="proof-link" href="${c.orient_proof}" target="_blank">📄</a>`:' <span style="color:#f97316;font-size:.67rem">no proof</span>'}</span>`:`<span class="chk-date" style="color:var(--red)">Agency Orientation: missing</span>`;
+    const alzLine=c.alz_date?`<span class="chk-date">ALZ/Dementia (4hr): ${fmtD(c.alz_date)} ✓${c.alz_proof?` <a class="proof-link" href="${c.alz_proof}" target="_blank">📄</a>`:' <span style="color:#f97316;font-size:.67rem">no proof</span>'}</span>`:`<span class="chk-date" style="color:var(--red)">ALZ/Dementia Training: missing</span>`;
     const alzHrsLine=c.alz_hrs?(parseInt(c.alz_hrs)>=4?`<span class="chk-date" style="color:var(--green)">ALZ hours: ${c.alz_hrs} ✓</span>`:`<span class="chk-date" style="color:var(--amber)">⚠ ALZ hours: ${c.alz_hrs}/4 required</span>`):'';
     // 30-day cell
     const ddStr=ts.thirtyDeadline?ts.thirtyDeadline.toLocaleDateString('en-US',{month:'short',day:'numeric'}):'';
@@ -1150,10 +1152,9 @@ function renderTR(){
     else if(ts.thirtyPassed){ thirtyBadge='b-red'; thirtyLabel='Overdue'; }
     else if(daysLeft30!==null&&daysLeft30<=7){ thirtyBadge='b-amber'; thirtyLabel=`Due in ${daysLeft30}d`; }
     else { thirtyBadge='b-gray'; thirtyLabel='Pending'; }
-    const ojtLine=c.ojt_date?`<span class="chk-date">OJT in-person: ${fmtD(c.ojt_date)}${c.ojt_signed==='yes'?' ✓':' ⚠ no signature'}</span>`:`<span class="chk-date" style="color:${ts.thirtyPassed?'var(--red)':'var(--gray)'}">OJT in-person: pending</span>`;
-    const ojtOnlineLine=c.ojt_online?`<span class="chk-date">OJT online 2hr: ${fmtD(c.ojt_online)} ✓</span>`:`<span class="chk-date">OJT online 2hr: pending</span>`;
-    const orientHrsLine=c.orient_hrs?(parseInt(c.orient_hrs)>=12?`<span class="chk-date" style="color:var(--green)">Total hours: ${c.orient_hrs}/12 ✓</span>`:`<span class="chk-date" style="color:var(--amber)">⚠ Total hours: ${c.orient_hrs}/12 required</span>`):'';
-    const proofLine=c.ojt_proof?`<a class="proof-link" href="${c.ojt_proof}" target="_blank">📄 signed proof</a>`:`<span style="color:#cbd5e1;font-size:.67rem">no proof uploaded</span>`;
+    const ojtLine=c.ojt_date?`<span class="chk-date">OJT In-Home/Office (4hr): ${fmtD(c.ojt_date)}${c.ojt_signed==='yes'?` ✓${c.ojt_proof?` <a class="proof-link" href="${c.ojt_proof}" target="_blank">📄</a>`:' <span style="color:#f97316;font-size:.67rem">no proof</span>'}`:` ⚠ no signed proof${c.ojt_proof?` <a class="proof-link" href="${c.ojt_proof}" target="_blank">📄</a>`:''}`}</span>`:`<span class="chk-date" style="color:${ts.thirtyPassed?'var(--red)':'var(--gray)'}">OJT In-Home/Office (4hr): pending</span>`;
+    const ojtOnlineLine=c.ojt_online?`<span class="chk-date">OJT Online (2hr): ${fmtD(c.ojt_online)} ✓${c.ojt_online_proof?` <a class="proof-link" href="${c.ojt_online_proof}" target="_blank">📄</a>`:' <span style="color:#f97316;font-size:.67rem">no proof</span>'}</span>`:`<span class="chk-date">OJT Online (2hr): pending</span>`;
+    const proofLine='';
     // Annual cell
     let annBadge,annLabel;
     if(ts.isFirstYear){ annBadge='b-blue'; annLabel='Exempt — Year 1'; }
@@ -1166,7 +1167,7 @@ function renderTR(){
     const annHrsLine=(!ts.isFirstYear&&c.annual_hrs)?(parseInt(c.annual_hrs)>=5?`<span class="chk-date" style="color:var(--green)">Hours: ${c.annual_hrs}/5 ✓</span>`:`<span class="chk-date" style="color:var(--amber)">⚠ Hours: ${c.annual_hrs}/5 required</span>`):'';
     const annProofLine=c.annual_proof?`<a class="proof-link" href="${c.annual_proof}" target="_blank">📄 proof</a>`:'';
     // Overall
-    const oBadge={Current:'b-green','Annual Due Soon':'b-amber','Annual Overdue':'b-red','OJT Overdue':'b-red','OJT Pending':'b-gray','Pre-Contact Blocked':'b-red'}[ts.overall]||'b-gray';
+    const oBadge={Current:'b-green','Annual Due Soon':'b-amber','Annual Overdue':'b-red','Training Overdue':'b-red','OJT Pending':'b-gray','Client Contact Blocked':'b-red'}[ts.overall]||'b-gray';
     return `<tr>
       <td><div class="name-cell">${c.first} ${c.last}</div></td>
       <td><span class="chk-date">${fmtD(c.hire_date)||'—'}</span></td>
@@ -1182,7 +1183,7 @@ function renderTR(){
         const note=!orientOk?'Orientation not done before contact':!alzOk?'ALZ training not done before contact':'Pre-contact training was complete';
         return `<div class="chk"><span class="badge ${statusBadge}">${statusLabel}</span><span class="chk-date">${fmtD(c.first_contact)}</span><span class="chk-date" style="color:${preOk?'var(--green)':'var(--red)'}">${note}</span></div>`;
       })()}</td>
-      <td><div class="chk"><span class="badge ${thirtyBadge}">${thirtyLabel}</span><span class="chk-date">Deadline: ${ddStr||'—'}</span>${ojtLine}${ojtOnlineLine}${orientHrsLine}${proofLine}</div></td>
+      <td><div class="chk"><span class="badge ${thirtyBadge}">${thirtyLabel}</span><span class="chk-date">Deadline: ${ddStr||'—'}</span>${ojtLine}${ojtOnlineLine}</div></td>
       <td><div class="chk"><span class="badge ${annBadge}">${annLabel}</span>${annDateLine}${annHrsLine}${annProofLine}</div></td>
       <td><span class="badge ${oBadge}">${ts.overall}</span></td>
       <td><div class="acts"><button class="ibtn" onclick="openCGModal('training',${c.id})">✏️</button></div></td>
@@ -1196,8 +1197,8 @@ function renderTR(){
   const allOk=caregivers.filter(c=>trainStatus(c).overall==='Current').length;
   document.getElementById('tr-stats').innerHTML=`
     <div class="stat"><div class="lbl">Total Caregivers</div><div class="val v-navy">${caregivers.length}</div></div>
-    <div class="stat"><div class="lbl">Pre-Contact Blocked</div><div class="val v-red">${bl}</div></div>
-    <div class="stat"><div class="lbl">OJT Overdue</div><div class="val v-red">${ojtOv}</div></div>
+    <div class="stat"><div class="lbl">Client Contact Blocked</div><div class="val v-red">${bl}</div></div>
+    <div class="stat"><div class="lbl">Training Overdue</div><div class="val v-red">${ojtOv}</div></div>
     <div class="stat"><div class="lbl">Annual Overdue</div><div class="val v-red">${annOv}</div></div>
     <div class="stat"><div class="lbl">All Current</div><div class="val v-green">${allOk}</div></div>`;
 }
@@ -1323,9 +1324,9 @@ function renderAlerts(){
   if(reviewCount) alerts.push({color:'#EF4444', text:`${reviewCount} candidate${reviewCount>1?'s':''} need review`, tab:'onboarding'});
 
   // Training
-  const blocked = caregivers.filter(c=>{ const ts=trainStatus(c); return ts.overall==='Pre-Contact Blocked'; }).length;
+  const blocked = caregivers.filter(c=>{ const ts=trainStatus(c); return ts.overall==='Client Contact Blocked'; }).length;
   const ojtOverdue = caregivers.filter(c=>{ const ts=trainStatus(c); return ts.thirtyStatus==='Overdue'; }).length;
-  if(blocked) alerts.push({color:'#EF4444', text:`${blocked} caregiver${blocked>1?'s':''} blocked from client contact`, tab:'training'});
+  if(blocked) alerts.push({color:'#EF4444', text:`${blocked} caregiver${blocked>1?'s':''} blocked from client contact — basic training incomplete`, tab:'training'});
   if(ojtOverdue) alerts.push({color:'#F97316', text:`${ojtOverdue} caregiver${ojtOverdue>1?'s':''} OJT overdue`, tab:'training'});
 
   // Active Compliance
@@ -1509,11 +1510,11 @@ function openCGModal(tab,id=null){ cgReturnTab=tab; editingCG=id;
   document.getElementById('cg-modal-title').textContent=id?'Edit Caregiver':'Add Caregiver';
   const c=id?caregivers.find(x=>x.id===id):null;
   const g=k=>document.getElementById(k);
-  const fields=['cg-first','cg-last','cg-hire','cg-orient','cg-alz','cg-alz-hrs','cg-orient-hrs','cg-first-contact','cg-ojt-date','cg-ojt-proof','cg-ojt-online','cg-annual','cg-annual-hrs','cg-annual-proof','cg-ethics-date','cg-ethics-proof','cg-rights-date','cg-rights-proof','cg-oig','cg-oig-proof','cg-edl','cg-edl-proof','cg-fcsr-reg','cg-fcsr','cg-fcsr-proof','cg-fp-date','cg-fp-proof','cg-supv-date','cg-supv-proof','cg-perf-date','cg-perf-proof'];
+  const fields=['cg-first','cg-last','cg-hire','cg-orient','cg-orient-proof','cg-alz','cg-alz-hrs','cg-alz-proof','cg-first-contact','cg-ojt-date','cg-ojt-proof','cg-ojt-online','cg-ojt-online-proof','cg-annual','cg-annual-hrs','cg-annual-proof','cg-ethics-date','cg-ethics-proof','cg-rights-date','cg-rights-proof','cg-oig','cg-oig-proof','cg-edl','cg-edl-proof','cg-fcsr-reg','cg-fcsr','cg-fcsr-proof','cg-fp-date','cg-fp-proof','cg-supv-date','cg-supv-proof','cg-perf-date','cg-perf-proof'];
   if(c){
     g('cg-first').value=c.first;g('cg-last').value=c.last;g('cg-hire').value=c.hire_date||'';
     g('cg-oos').value=c.oos||'no';g('cg-orient').value=c.orient_date||'';g('cg-alz').value=c.alz_date||'';
-    g('cg-alz-hrs').value=c.alz_hrs||'';g('cg-orient-hrs').value=c.orient_hrs||'';g('cg-first-contact').value=c.first_contact||'';
+    g('cg-orient-proof').value=c.orient_proof||'';g('cg-alz-hrs').value=c.alz_hrs||'';g('cg-alz-proof').value=c.alz_proof||'';g('cg-first-contact').value=c.first_contact||'';g('cg-ojt-online-proof').value=c.ojt_online_proof||'';
     g('cg-ojt-date').value=c.ojt_date||'';g('cg-ojt-signed').value=c.ojt_signed||'no';
     g('cg-ojt-proof').value=c.ojt_proof||'';g('cg-ojt-online').value=c.ojt_online||'';
     g('cg-annual').value=c.annual_date||'';g('cg-annual-hrs').value=c.annual_hrs||'';g('cg-annual-proof').value=c.annual_proof||'';
@@ -1532,8 +1533,8 @@ function saveCG(){
   const g=k=>document.getElementById(k).value;
   if(!g('cg-first')||!g('cg-last')){alert('Name required.');return;}
   const d={first:g('cg-first'),last:g('cg-last'),hire_date:g('cg-hire'),oos:g('cg-oos'),
-    orient_date:g('cg-orient'),alz_date:g('cg-alz'),alz_hrs:g('cg-alz-hrs'),orient_hrs:g('cg-orient-hrs'),first_contact:g('cg-first-contact'),
-    ojt_date:g('cg-ojt-date'),ojt_signed:g('cg-ojt-signed'),ojt_proof:g('cg-ojt-proof'),ojt_online:g('cg-ojt-online'),
+    orient_date:g('cg-orient'),orient_proof:g('cg-orient-proof'),alz_date:g('cg-alz'),alz_hrs:g('cg-alz-hrs'),alz_proof:g('cg-alz-proof'),first_contact:g('cg-first-contact'),
+    ojt_date:g('cg-ojt-date'),ojt_signed:g('cg-ojt-signed'),ojt_proof:g('cg-ojt-proof'),ojt_online:g('cg-ojt-online'),ojt_online_proof:g('cg-ojt-online-proof'),
     annual_date:g('cg-annual'),annual_hrs:g('cg-annual-hrs'),annual_proof:g('cg-annual-proof'),
     ethics_date:g('cg-ethics-date'),ethics_proof:g('cg-ethics-proof'),
     rights_date:g('cg-rights-date'),rights_proof:g('cg-rights-proof'),
