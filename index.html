@@ -726,12 +726,17 @@ td{padding:.7rem .9rem;font-size:.83rem;vertical-align:middle}
   <div class="modal" style="max-width:480px">
     <h3>⚙️ Settings</h3>
     <div class="sect-lbl" style="margin-top:.75rem">Google Drive Integration</div>
-    <p style="font-size:.78rem;color:var(--gray);margin:.4rem 0 .75rem">Paste your Google OAuth Client ID here to enable the 📤 upload buttons on proof fields. Files upload to a <em>Caring Companions Compliance</em> folder in your Google Drive and the link is saved automatically.</p>
+    <p style="font-size:.78rem;color:var(--gray);margin:.4rem 0 .75rem">Connect your Google Drive to enable 📤 upload buttons on all proof fields. Files go into the correct employee subfolder automatically.</p>
     <div style="display:flex;gap:.5rem;margin-bottom:.5rem;align-items:center">
       <label style="font-size:.8rem;font-weight:500;white-space:nowrap;color:var(--navy)">Client ID:</label>
       <input type="text" id="settings-gdrive-client-id" placeholder="xxxxxxxxxx.apps.googleusercontent.com" style="flex:1;padding:.45rem .75rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.78rem">
     </div>
-    <p style="font-size:.72rem;color:var(--gray);margin-bottom:1rem">Get this from <strong>console.cloud.google.com</strong> → APIs &amp; Services → Credentials → OAuth 2.0 Client ID. Add <strong>hub.mo-care.com</strong> as an authorized JavaScript origin.</p>
+    <div style="display:flex;gap:.5rem;margin-bottom:.5rem;align-items:center">
+      <label style="font-size:.8rem;font-weight:500;white-space:nowrap;color:var(--navy)">Root Folder ID:</label>
+      <input type="text" id="settings-gdrive-folder-id" placeholder="Paste folder ID from Drive URL" style="flex:1;padding:.45rem .75rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.78rem">
+    </div>
+    <p style="font-size:.72rem;color:var(--gray);margin-bottom:.35rem">The folder ID is the long string at the end of your Google Drive folder URL:<br><span style="font-family:monospace">drive.google.com/drive/folders/<strong>1vaeRb-DVuVX_LzBqjMMoZTvZUtxm0pNp</strong></span></p>
+    <p style="font-size:.72rem;color:var(--gray);margin-bottom:1rem">The hub will create a subfolder per employee, then OIG / EDL / FCSR / Training / etc. folders inside each one automatically.</p>
     <div class="sect-lbl" style="margin-top:.75rem">AxisCare Integration</div>
     <p style="font-size:.78rem;color:var(--gray);margin:.4rem 0 .75rem">Your AxisCare site number is used in the AxisCare Sync Zap to post status notes to caregiver profiles. Find it in your AxisCare URL: <span style="font-family:monospace;font-size:.78rem">https://<strong>XXXXX</strong>.axiscare.com</span></p>
     <div style="display:flex;gap:.5rem;margin-bottom:1rem;align-items:center">
@@ -973,7 +978,7 @@ function gdrivePickAndUpload(inputId){
     if(btn){ btn.textContent = '⏳'; btn.disabled = true; }
     try {
       const personName = gdriveGetPersonName();
-      const folderId = await gdriveEnsurePersonFolder(personName);
+      const folderId = await gdriveGetUploadFolder(inputId);
       const ext = file.name.split('.').pop();
       const label = inputId.replace(/^(cg|ob)-/,'').replace(/-proof$/,'').replace(/-/g,'_');
       const stamp = new Date().toISOString().slice(0,10);
@@ -1006,8 +1011,25 @@ function gdriveGetPersonName(){
   return null;
 }
 
+// Map proof input IDs to document-type subfolder names
+const GDRIVE_DOC_FOLDERS = {
+  'oig':'OIG','edl':'EDL','fcsr':'FCSR','fp':'Fingerprint',
+  'orient':'Training','alz':'Training','ojt':'Training','ojt-online':'Training',
+  'annual':'Training','ethics':'Training','rights':'Training',
+  'supv':'Supervisory','perf':'Performance',
+  'r1':'References','r2':'References','r3':'References','r4':'References'
+};
+function gdriveDocFolder(inputId){
+  const key = inputId.replace(/^(cg|ob)-/,'').replace(/-proof$/,'');
+  return GDRIVE_DOC_FOLDERS[key] || 'Other';
+}
+
 async function gdriveEnsureFolder(){
   if(gdriveFolderId) return gdriveFolderId;
+  // Use the configured root folder ID if set
+  const configured = appSettings.google_drive_folder_id;
+  if(configured){ gdriveFolderId = configured; return gdriveFolderId; }
+  // Fallback: find or create a root folder in My Drive
   const q = encodeURIComponent(`name='Caring Companions Compliance' and mimeType='application/vnd.google-apps.folder' and trashed=false`);
   const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id)`, {
     headers: { Authorization: `Bearer ${gdriveAccessToken}` }
@@ -1025,30 +1047,37 @@ async function gdriveEnsureFolder(){
   return gdriveFolderId;
 }
 
-// Find or create a per-employee subfolder inside the root compliance folder
+// Cache for subfolder IDs: "PersonName/DocType" → folderId
 const gdrivePersonFolderCache = {};
-async function gdriveEnsurePersonFolder(personName){
-  const rootId = await gdriveEnsureFolder();
-  if(!personName) return rootId;
-  if(gdrivePersonFolderCache[personName]) return gdrivePersonFolderCache[personName];
-  const q = encodeURIComponent(`name='${personName}' and '${rootId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`);
-  const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id)`, {
+async function gdriveEnsureSubfolder(parentId, name){
+  const cacheKey = `${parentId}/${name}`;
+  if(gdrivePersonFolderCache[cacheKey]) return gdrivePersonFolderCache[cacheKey];
+  const q = encodeURIComponent(`name='${name}' and '${parentId}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false`);
+  const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id)&supportsAllDrives=true&includeItemsFromAllDrives=true`, {
     headers: { Authorization: `Bearer ${gdriveAccessToken}` }
   });
   const data = await res.json();
   if(data.files && data.files.length > 0){
-    gdrivePersonFolderCache[personName] = data.files[0].id;
+    gdrivePersonFolderCache[cacheKey] = data.files[0].id;
     return data.files[0].id;
   }
-  const create = await fetch('https://www.googleapis.com/drive/v3/files', {
+  const create = await fetch('https://www.googleapis.com/drive/v3/files?supportsAllDrives=true', {
     method: 'POST',
     headers: { Authorization: `Bearer ${gdriveAccessToken}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name: personName, mimeType: 'application/vnd.google-apps.folder', parents: [rootId] })
+    body: JSON.stringify({ name, mimeType: 'application/vnd.google-apps.folder', parents: [parentId] })
   });
   const folder = await create.json();
-  if(!create.ok) throw new Error(folder.error?.message || 'Could not create employee folder');
-  gdrivePersonFolderCache[personName] = folder.id;
+  if(!create.ok) throw new Error(folder.error?.message || `Could not create folder: ${name}`);
+  gdrivePersonFolderCache[cacheKey] = folder.id;
   return folder.id;
+}
+
+async function gdriveGetUploadFolder(inputId){
+  const rootId   = await gdriveEnsureFolder();
+  const person   = gdriveGetPersonName();
+  const docType  = gdriveDocFolder(inputId);
+  const personId = person ? await gdriveEnsureSubfolder(rootId, person) : rootId;
+  return await gdriveEnsureSubfolder(personId, docType);
 }
 
 async function gdriveUploadFile(file, folderId, filename){
@@ -1056,7 +1085,7 @@ async function gdriveUploadFile(file, folderId, filename){
   const form = new FormData();
   form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
   form.append('file', file);
-  const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id', {
+  const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id&supportsAllDrives=true', {
     method: 'POST',
     headers: { Authorization: `Bearer ${gdriveAccessToken}` },
     body: form
@@ -2700,6 +2729,7 @@ function openSettings(){
   document.getElementById('new-recip-email').value='';
   document.getElementById('settings-ac-site').value=appSettings.axiscare_site||'';
   document.getElementById('settings-gdrive-client-id').value=appSettings.google_client_id||'';
+  document.getElementById('settings-gdrive-folder-id').value=appSettings.google_drive_folder_id||'';
   document.getElementById('settings-modal').classList.add('open');
 }
 function renderRecipients(){
@@ -2736,11 +2766,13 @@ function removeRecipient(idx){
 function saveSettings(){
   appSettings.axiscare_site = document.getElementById('settings-ac-site').value.trim();
   const newClientId = document.getElementById('settings-gdrive-client-id').value.trim();
+  appSettings.google_drive_folder_id = document.getElementById('settings-gdrive-folder-id').value.trim();
   if(newClientId !== appSettings.google_client_id){
     appSettings.google_client_id = newClientId;
-    gdriveTokenClient = null; // reset so it re-initializes with new client ID
+    gdriveTokenClient = null;
     gdriveAccessToken = null;
     gdriveFolderId = null;
+    Object.keys(gdrivePersonFolderCache).forEach(k=>delete gdrivePersonFolderCache[k]);
     if(newClientId) gdriveInit();
   }
   localStorage.setItem('cc_settings', JSON.stringify(appSettings));
