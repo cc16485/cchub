@@ -435,7 +435,7 @@ td{padding:.7rem .9rem;font-size:.83rem;vertical-align:middle}
 
       <!-- Deadline reminder bar -->
       <div class="evv-deadline-bar">
-        ⏰ <strong>EVV Correction Deadline: Saturday 11:59 PM</strong> each pay period (Sun–Sat). &nbsp;|&nbsp; EVV system: <strong>WellSky Personal Care</strong> &nbsp;|&nbsp; Portal: <a href="https://mycaringcds.com" target="_blank" style="color:var(--yellow)">mycaringcds.com</a>
+        ⏰ <strong>EVV Correction Deadline: Saturday 11:59 PM</strong> each pay period (Sun–Sat). &nbsp;|&nbsp; EVV system: <strong>AxisCare</strong> &nbsp;|&nbsp; Check your shifts in the <strong>AxisCare app</strong>
       </div>
 
       <!-- Form link bar -->
@@ -458,17 +458,17 @@ td{padding:.7rem .9rem;font-size:.83rem;vertical-align:middle}
           <div class="evv-step" style="background:#1a5e9b">
             <div class="evv-step-num">2️⃣</div>
             <div class="evv-step-title">Admin Reviews</div>
-            <div class="evv-step-body">VA verifies the request against the consumer's care plan. Approves or denies the correction.</div>
+            <div class="evv-step-body">VA verifies the request against the client's care plan. Approves or denies the correction.</div>
           </div>
           <div class="evv-step" style="background:var(--teal)">
             <div class="evv-step-num">3️⃣</div>
-            <div class="evv-step-title">Update WellSky</div>
-            <div class="evv-step-body">VA updates the visit in the <strong>WellSky calendar</strong> with corrected clock-in/out times so the attendant is paid correctly.</div>
+            <div class="evv-step-title">Update AxisCare</div>
+            <div class="evv-step-body">VA updates the visit in the <strong>AxisCare calendar</strong> with corrected clock-in/out times so the attendant is paid correctly.</div>
           </div>
           <div class="evv-step" style="background:var(--green)">
             <div class="evv-step-num">4️⃣</div>
             <div class="evv-step-title">Log &amp; File</div>
-            <div class="evv-step-body">Log it here. File the signed form in the <strong>attendant's file</strong> AND the <strong>consumer's file</strong>. Both must retain documentation.</div>
+            <div class="evv-step-body">Log it here. File the signed form in the <strong>attendant's file</strong> AND the <strong>client's file</strong>. Both must retain documentation.</div>
           </div>
         </div>
       </div>
@@ -526,7 +526,7 @@ td{padding:.7rem .9rem;font-size:.83rem;vertical-align:middle}
           <select id="evv-filter-status" onchange="renderEVVCorrections()" style="font-size:.8rem;padding:.3rem .55rem;border:1.5px solid var(--border);border-radius:6px;font-family:inherit">
             <option value="">All Statuses</option>
             <option value="pending_form">⏳ Awaiting Form</option>
-            <option value="pending_wellsky">📝 Form Received — Awaiting WellSky</option>
+            <option value="pending_wellsky">📝 Form Received — Awaiting AxisCare</option>
             <option value="complete">✓ Complete</option>
             <option value="denied">Denied</option>
           </select>
@@ -538,12 +538,12 @@ td{padding:.7rem .9rem;font-size:.83rem;vertical-align:middle}
               <th>#</th>
               <th>Visit Date</th>
               <th>Attendant</th>
-              <th>Consumer</th>
+              <th>Client</th>
               <th>Original Time</th>
               <th>Corrected Time</th>
               <th>Reason</th>
               <th>Form on File</th>
-              <th>WellSky Updated</th>
+              <th>AxisCare Updated</th>
               <th>Status</th>
               <th>Actions</th>
             </tr></thead>
@@ -563,10 +563,10 @@ td{padding:.7rem .9rem;font-size:.83rem;vertical-align:middle}
             <ul style="font-size:.8rem;line-height:2;padding-left:1.1rem;color:var(--navy)">
               <li>Phone was dead / no battery at clock-in or out</li>
               <li>App crashed or technical error (screenshot recommended)</li>
-              <li>No cell service at consumer's location (rural area)</li>
+              <li>No cell service at client's location (rural area)</li>
               <li>Attendant forgot to clock in or out (occasional — not recurring)</li>
-              <li>WellSky app update caused disruption</li>
-              <li>Consumer's home phone not available for landline EVV</li>
+              <li>AxisCare app update caused disruption</li>
+              <li>Client's home phone not available for landline EVV</li>
             </ul>
           </div>
           <div>
@@ -578,12 +578,12 @@ td{padding:.7rem .9rem;font-size:.83rem;vertical-align:middle}
               <li>No signed correction form on file for an adjustment</li>
               <li>3+ corrections in one month for the same attendant</li>
               <li>10+ corrections agency-wide in one month</li>
-              <li>Pattern of corrections always on the same day/consumer</li>
+              <li>Pattern of corrections always on the same day/client</li>
             </ul>
           </div>
         </div>
         <div style="margin-top:.85rem;padding:.65rem .9rem;background:var(--amber-bg);border-radius:6px;font-size:.79rem;color:var(--amber-text)">
-          ⚠️ <strong>Documentation Rule:</strong> Every manual adjustment in WellSky must have a corresponding signed EVV Correction Form on file <em>before</em> the correction is made. If MMAC audits a claim and there is no form, the adjustment looks fraudulent. <strong>Saturday 11:59 PM</strong> weekly deadline applies — corrections for the week must be in before that cutoff.
+          ⚠️ <strong>Documentation Rule:</strong> Every manual adjustment in AxisCare must have a corresponding signed EVV Correction Form on file <em>before</em> the correction is made. If MMAC audits a claim and there is no form, the adjustment looks fraudulent. <strong>Saturday 11:59 PM</strong> weekly deadline applies — corrections for the week must be in before that cutoff.
         </div>
       </div>
 
@@ -598,7 +598,7 @@ td{padding:.7rem .9rem;font-size:.83rem;vertical-align:middle}
     <h3 style="color:var(--navy)">📝 Log EVV Correction</h3>
     <div class="fg">
       <div class="grp full" style="background:var(--amber-bg);border-radius:8px;padding:.55rem .8rem;font-size:.78rem;color:var(--amber-text);margin-bottom:.25rem">
-        ⚠️ The signed correction form must be received <strong>before</strong> updating WellSky. Log this record after the form is on file.
+        ⚠️ The signed correction form must be received <strong>before</strong> updating AxisCare. Log this record after the form is on file.
       </div>
 
       <div class="sect-lbl">Visit Details</div>
@@ -607,7 +607,7 @@ td{padding:.7rem .9rem;font-size:.83rem;vertical-align:middle}
         <input type="text" id="evv-cor-attendant" placeholder="First Last">
       </div>
       <div class="grp">
-        <label>Consumer Name *</label>
+        <label>Client's Name *</label>
         <input type="text" id="evv-cor-consumer" placeholder="First Last">
       </div>
       <div class="grp">
@@ -644,10 +644,10 @@ td{padding:.7rem .9rem;font-size:.83rem;vertical-align:middle}
           <option value="">— Select a reason —</option>
           <option>Phone was dead / no battery</option>
           <option>App crashed or technical error</option>
-          <option>No cell service at consumer location</option>
+          <option>No cell service at client location</option>
           <option>Attendant forgot to clock in or out</option>
-          <option>WellSky app update caused disruption</option>
-          <option>Consumer home phone unavailable</option>
+          <option>AxisCare app update caused disruption</option>
+          <option>Client home phone unavailable</option>
           <option>Other</option>
         </select>
       </div>
@@ -663,7 +663,7 @@ td{padding:.7rem .9rem;font-size:.83rem;vertical-align:middle}
         </select>
       </div>
       <div class="grp">
-        <label>WellSky Updated?</label>
+        <label>AxisCare Updated?</label>
         <select id="evv-cor-wellsky-done">
           <option value="no">No — Not yet updated</option>
           <option value="yes">Yes — Updated</option>
@@ -676,7 +676,7 @@ td{padding:.7rem .9rem;font-size:.83rem;vertical-align:middle}
         <input type="text" id="evv-cor-admin" placeholder="Your name">
       </div>
       <div class="grp">
-        <label>Date WellSky Updated</label>
+        <label>Date AxisCare Updated</label>
         <input type="date" id="evv-cor-wellsky-date">
       </div>
       <div class="grp full">
@@ -3526,7 +3526,7 @@ function evvGetStatus(c) {
 
 function evvStatusBadge(status) {
   if (status === 'complete')         return '<span class="badge b-green">✓ Complete</span>';
-  if (status === 'pending_wellsky')  return '<span class="badge b-amber">⏳ Awaiting WellSky</span>';
+  if (status === 'pending_wellsky')  return '<span class="badge b-amber">⏳ Awaiting AxisCare</span>';
   if (status === 'denied')           return '<span class="badge b-red">Denied</span>';
   return '<span class="badge b-red">⏳ Awaiting Form</span>';
 }
@@ -3558,7 +3558,7 @@ function saveEVVCorrection() {
   const consumer  = document.getElementById('evv-cor-consumer').value.trim();
   const visitdate = document.getElementById('evv-cor-visitdate').value;
   if (!attendant || !consumer || !visitdate) {
-    alert('Attendant name, consumer name, and visit date are required.'); return;
+    alert('Attendant name, client name, and visit date are required.'); return;
   }
   const reason = document.getElementById('evv-cor-reason').value;
   const reasonOther = document.getElementById('evv-cor-reason-other').value.trim();
@@ -3584,7 +3584,7 @@ function saveEVVCorrection() {
   renderEVVCorrections();
 }
 
-// ── Toggle WellSky checkbox inline ───────────────────────────────────
+// ── Toggle AxisCare checkbox inline ───────────────────────────────────
 function evvToggleWellsky(id, checked) {
   const corrections = getEVVCorrections();
   const idx = corrections.findIndex(c => c.id === id);
@@ -3684,7 +3684,7 @@ async function loadPendingEVVSubmissions() {
         ${sub.notes ? `<div style="font-size:.78rem;background:var(--white);border-radius:6px;padding:.4rem .65rem;margin-bottom:.3rem"><span style="color:var(--gray)">Notes:</span> ${sub.notes}</div>` : ''}
         <div style="display:flex;gap:1rem;flex-wrap:wrap">
           ${sigHtml(sub.sig_attendant,'Attendant signature')}
-          ${sigHtml(sub.sig_consumer,'Consumer signature')}
+          ${sigHtml(sub.sig_consumer,'Client signature')}
         </div>
       </div>`;
     }).join('');
@@ -3721,7 +3721,7 @@ async function acceptEVVSubmission(sub) {
   await sb.from('evv_submissions').update({ processed: true }).eq('id', sub.id);
   await loadPendingEVVSubmissions();
   renderEVVCorrections();
-  alert(`✅ Logged! "${sub.attendant}" correction is now in the log. Update WellSky and check the form-received box once done.`);
+  alert(`✅ Logged! "${sub.attendant}" correction is now in the log. Update AxisCare and check the form-received box once done.`);
 }
 
 async function dismissEVVSubmission(id) {
