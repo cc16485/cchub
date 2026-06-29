@@ -1376,6 +1376,30 @@ td{padding:.7rem .9rem;font-size:.83rem;vertical-align:middle}
       <p style="font-size:.7rem;color:var(--gray);margin:0">Setup: In Zapier, create a Zap → <strong>Trigger:</strong> Webhooks by Zapier (Catch Hook) → <strong>Action:</strong> AxisCare: Create Shift. Map the fields below, then paste the webhook URL here.<br>
       <strong>Fields sent:</strong> date, time, end_time, duration_hours, facilitator, facilitator_role, location, is_remote, video_link, capacity, notes, session_id</p>
     </div>
+    <!-- ── Candidate Pipeline Webhooks ── -->
+    <div style="background:#f0fffe;border:1.5px solid var(--teal);border-radius:10px;padding:.85rem 1rem;margin-bottom:.65rem">
+      <div style="font-size:.7rem;font-weight:700;color:#0e5555;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem">🔗 Candidate Pipeline Webhooks (Zapier)</div>
+      <p style="font-size:.72rem;color:var(--gray);margin:0 0 .75rem">These fire automatically as candidates move through the pipeline. Paste your Zapier Catch Hook URLs below — leave blank to skip that Zap until you're ready.</p>
+
+      <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.4rem">
+        <label style="font-size:.75rem;font-weight:500;min-width:180px;color:var(--navy)">📩 Orientation Invite (SMS/Email):</label>
+        <input type="text" id="settings-zapier-orient" placeholder="https://hooks.zapier.com/hooks/catch/…" style="flex:1;padding:.42rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.75rem">
+      </div>
+      <p style="font-size:.68rem;color:var(--gray);margin:0 0 .6rem .5rem">Fires when you send an orientation invite. Zap should text/email the candidate their self-booking link.</p>
+
+      <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.4rem">
+        <label style="font-size:.75rem;font-weight:500;min-width:180px;color:var(--navy)">✅ Attendance Marked:</label>
+        <input type="text" id="settings-zapier-attend" placeholder="https://hooks.zapier.com/hooks/catch/…" style="flex:1;padding:.42rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.75rem">
+      </div>
+      <p style="font-size:.68rem;color:var(--gray);margin:0 0 .6rem .5rem">Fires when attendance is marked on a session. Zap should update the candidate's AxisCare profile.</p>
+
+      <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.4rem">
+        <label style="font-size:.75rem;font-weight:500;min-width:180px;color:var(--navy)">💾 Candidate Saved (Sync):</label>
+        <input type="text" id="settings-zapier-cand" placeholder="https://hooks.zapier.com/hooks/catch/…" style="flex:1;padding:.42rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.75rem">
+      </div>
+      <p style="font-size:.68rem;color:var(--gray);margin:0 .5rem">Fires every time a candidate record is saved. Zap should sync to AxisCare applicant + Google Drive sheet.</p>
+    </div>
+
     <div class="sect-lbl">Staff &amp; Notifications</div>
     <p style="font-size:.78rem;color:var(--gray);margin:.4rem 0 .75rem">Add staff members and choose which automated reminder emails each person receives.</p>
 
@@ -2043,7 +2067,7 @@ function toggleGuide(id){
 }
 
 // ── Google Calendar Sync ─────────────────────────────────────────────
-const ORIENT_DURATION_HOURS = 2;
+function getOrientDuration(){ return parseFloat(appSettings.orient_config?.duration)||2; }
 
 function gcalCalendarId(){
   return (appSettings.gcal_calendar_id||'primary').trim();
@@ -2070,7 +2094,7 @@ async function gcalEnsureToken(){
 function gcalBuildEvent(session){
   const [h, m] = (session.time||'10:00').split(':').map(Number);
   const start = new Date(`${session.date}T${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:00`);
-  const end = new Date(start.getTime() + ORIENT_DURATION_HOURS*60*60*1000);
+  const end = new Date(start.getTime() + getOrientDuration()*60*60*1000);
   const toLocal = d => d.toISOString().replace(/\.\d{3}Z$/, '');
   const locParts = session.is_remote==='yes'
     ? { location: session.video_link||'Remote — video call', conferenceUrl: session.video_link }
@@ -2474,7 +2498,7 @@ async function axisCreateOrientShift(session){
   if(!webhook || webhook.includes('REPLACE')) return;
   const [h, m] = (session.time||'10:00').split(':').map(Number);
   const start = new Date(`${session.date}T${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:00`);
-  const end = new Date(start.getTime() + ORIENT_DURATION_HOURS*60*60*1000);
+  const end = new Date(start.getTime() + getOrientDuration()*60*60*1000);
   const fmt = d => d.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true});
   const payload = {
     session_id:       session.id,
@@ -2483,7 +2507,7 @@ async function axisCreateOrientShift(session){
     end_time:         `${String(end.getHours()).padStart(2,'0')}:${String(end.getMinutes()).padStart(2,'0')}`,
     time_readable:    fmt(start),
     end_time_readable:fmt(end),
-    duration_hours:   ORIENT_DURATION_HOURS,
+    duration_hours:   getOrientDuration(),
     facilitator:      session.facilitator||'',
     facilitator_role: session.facilitator_role||'',
     location:         session.is_remote==='yes' ? (session.video_link||'Remote') : '1331 N Stewart Ave Ste B, Springfield MO 65802',
@@ -2553,12 +2577,15 @@ function badge(status,txt){
 }
 function proofLink(url){ return url?`<a class="proof-link" href="${url}" target="_blank">📄 proof</a>`:`<span style="color:#cbd5e1;font-size:.67rem">no proof</span>`; }
 
-// ── CONFIG — replace with your actual Zapier catch hook URLs ─────────
-const ZAPIER_ORIENTATION_WEBHOOK = "https://hooks.zapier.com/hooks/catch/REPLACE_WITH_YOUR_URL/";
-// Fires when attendance is marked — Zap should find applicant in AxisCare and update their profile
-const ZAPIER_ATTENDANCE_WEBHOOK = "https://hooks.zapier.com/hooks/catch/REPLACE_WITH_YOUR_URL/attendance/";
-// Fires every time a candidate record is saved — syncs to AxisCare applicant + Google Drive Sheet
-const ZAPIER_CANDIDATE_WEBHOOK = "https://hooks.zapier.com/hooks/catch/REPLACE_WITH_YOUR_URL/candidate/";
+// ── Zapier webhook helper — reads URLs from Settings (configurable without editing code) ─────────
+// Returns a Promise so callers can optionally await it.
+function zapFire(settingsKey, payload, json=false){
+  const url = (appSettings[settingsKey]||'').trim();
+  if(!url || url.includes('REPLACE') || !url.startsWith('http')) return Promise.resolve();
+  const opts = {method:'POST', body: JSON.stringify(payload)};
+  if(json) opts.headers = {'Content-Type':'application/json'};
+  return fetch(url, opts).catch(e=>console.warn(`Zapier ${settingsKey} skipped/error:`, e));
+}
 // Fires when a caregiver is cleared to schedule (orientation+ALZ done) or candidate is Ready for Orientation
 // Zap adds a note to their AxisCare profile so care coordinators can see status without hub access
 const ZAPIER_AC_STATUS_WEBHOOK = "https://hooks.zapier.com/hooks/catch/28062149/42aqc9c/";
@@ -3160,8 +3187,8 @@ function saveOB(){
       note: `✅ Ready for Orientation — background checks clear, 2 positive references received. Ready to be scheduled for orientation.`
     });
   }
-  // Push to AxisCare + Google Drive via Zapier
-  fetch(ZAPIER_CANDIDATE_WEBHOOK,{method:'POST',body:JSON.stringify({
+  // Push to AxisCare + Google Drive via Zapier (URL configured in Settings)
+  zapFire('zapier_cand_webhook',{
     candidate_id: saved.id,
     first: saved.first, last: saved.last, full_name:`${saved.first} ${saved.last}`,
     phone: saved.phone||'',
@@ -3176,7 +3203,7 @@ function saveOB(){
     overall_status:obDeriveStatus(saved),
     notes:saved.notes||'',
     timestamp:new Date().toISOString()
-  })}).catch(e=>console.warn('Candidate webhook (CORS expected):', e));
+  });
 }
 
 // ── ORIENTATION INVITE ────────────────────────────────────────────────
@@ -3260,7 +3287,7 @@ async function confirmSendInvite(){
     sent_at:         new Date().toISOString(),
   };
   try {
-    await fetch(ZAPIER_ORIENTATION_WEBHOOK, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+    await zapFire('zapier_orient_webhook', payload, true);
   } catch(e){ console.warn('Webhook error (CORS expected — Zapier still receives it):', e); }
   const i=candidates.findIndex(x=>x.id===invitingId);
   candidates[i].invite_sent=true;
@@ -3817,7 +3844,7 @@ function renderSessionsList(){
     const {dow,date} = sessDateShort(s.date);
     const locLabel = s.is_remote==='yes'
       ? `<span class="badge b-blue" style="font-size:.65rem">🖥 Remote</span>${s.video_link?` <a href="${s.video_link}" target="_blank" style="font-size:.68rem;color:var(--teal)">Join link</a>`:''}`
-      : `📍 ${ORIENT_ADDR}`;
+      : `📍 ${getOrientConfig().address||ORIENT_ADDR}`;
     const facilitatorLabel = s.facilitator
       ? (s.facilitator_role ? `${s.facilitator} · <span style="font-weight:400;color:var(--teal)">${s.facilitator_role}</span>` : s.facilitator)
       : null;
@@ -4122,12 +4149,12 @@ function markAttendance(sessId, bookingIdx, status){
   // Push to AxisCare via Zapier
   if(status){
     const outcomeLabel={attended:'Attended',noshow:'No-Show',rescheduled:'Rescheduled'}[status]||status;
-    fetch(ZAPIER_ATTENDANCE_WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+    zapFire('zapier_attend_webhook',{
       candidate_first:b.first, candidate_last:b.last, candidate_phone:b.phone||'',
       outcome:status, outcome_label:outcomeLabel,
       session_date:s.date, session_time:s.time||'',
       timestamp:new Date().toISOString()
-    })}).catch(e=>console.warn('Attendance webhook (CORS expected):', e));
+    }, true);
   }
   saveOrientStore();
   renderSessionsList();
@@ -4167,14 +4194,14 @@ function saveCancelDetails(){
   }
   // Push cancellation details to AxisCare via Zapier
   const methodLabel={call:'Called us',text:'Texted us',other:'Other/Unknown'}[method]||method;
-  fetch(ZAPIER_ATTENDANCE_WEBHOOK,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({
+  zapFire('zapier_attend_webhook',{
     candidate_first:b.first, candidate_last:b.last, candidate_phone:b.phone||'',
     outcome:'canceled', outcome_label:'Canceled',
     cancel_method:method, cancel_method_label:methodLabel,
     cancel_reason:reason,
     session_date:s.date, session_time:s.time||'',
     timestamp:new Date().toISOString()
-  })}).catch(e=>console.warn('Attendance webhook (CORS expected):', e));
+  }, true);
   saveOrientStore();
   closeModal('cancel-modal');
   renderSessionsList();
@@ -4442,6 +4469,9 @@ function _openSettingsModal(){
   document.getElementById('settings-gcal-id').value=appSettings.gcal_calendar_id||'';
   document.getElementById('settings-ac-orient-webhook').value=appSettings.ac_orient_webhook||'';
   if(document.getElementById('settings-nc-webhook')) document.getElementById('settings-nc-webhook').value=appSettings.ac_new_client_webhook||'';
+  document.getElementById('settings-zapier-orient').value=appSettings.zapier_orient_webhook||'';
+  document.getElementById('settings-zapier-attend').value=appSettings.zapier_attend_webhook||'';
+  document.getElementById('settings-zapier-cand').value=appSettings.zapier_cand_webhook||'';
   document.getElementById('settings-admin-current').value='';
   document.getElementById('settings-admin-new').value='';
   document.getElementById('settings-admin-confirm').value='';
@@ -4546,6 +4576,9 @@ function saveSettings(){
   appSettings.gcal_calendar_id = document.getElementById('settings-gcal-id').value.trim() || 'primary';
   appSettings.ac_orient_webhook = document.getElementById('settings-ac-orient-webhook').value.trim();
   appSettings.ac_new_client_webhook = document.getElementById('settings-nc-webhook')?.value.trim() || appSettings.ac_new_client_webhook || '';
+  appSettings.zapier_orient_webhook = document.getElementById('settings-zapier-orient').value.trim();
+  appSettings.zapier_attend_webhook = document.getElementById('settings-zapier-attend').value.trim();
+  appSettings.zapier_cand_webhook = document.getElementById('settings-zapier-cand').value.trim();
   if(newClientId !== appSettings.google_client_id){
     appSettings.google_client_id = newClientId;
     gdriveTokenClient = null;
