@@ -502,6 +502,17 @@ td{padding:.7rem .9rem;font-size:.83rem;vertical-align:middle}
         </div>
       </div>
 
+      <!-- Pending form submissions from Supabase -->
+      <div class="evv-card" id="evv-pending-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;flex-wrap:wrap;gap:.5rem">
+          <div class="evv-card-title" style="margin-bottom:0">📬 Pending Form Submissions <span class="badge b-amber" id="evv-pending-badge" style="display:none"></span></div>
+          <button class="ibtn" onclick="loadPendingEVVSubmissions()" style="font-size:.78rem;padding:.3rem .65rem">↻ Refresh</button>
+        </div>
+        <div id="evv-pending-body">
+          <p style="font-size:.82rem;color:var(--gray)">Loading submissions…</p>
+        </div>
+      </div>
+
       <!-- Correction log table -->
       <div class="evv-card">
         <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;flex-wrap:wrap;gap:.5rem">
@@ -1644,7 +1655,7 @@ function switchTab(name, btn){
   btn.classList.add('active');
   document.getElementById('panel-'+name).classList.add('active');
   if(name==='orientations') renderOrientations();
-  if(name==='evv') renderEVVCorrections();
+  if(name==='evv') { renderEVVCorrections(); loadPendingEVVSubmissions(); }
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────
@@ -1698,6 +1709,7 @@ async function loadFromSupabase(){
       if(row.key==='orient_sessions'){ orientSessions=row.data; orientId=Math.max(orientId,...orientSessions.map(s=>s.id+1),1); }
       if(row.key==='offboardings')   { offboardings=row.data; offId=Math.max(offId,...offboardings.map(o=>o.id+1),10); }
       if(row.key==='settings')       { appSettings=row.data; localStorage.setItem('cc_settings',JSON.stringify(row.data)); }
+      if(row.key==='evv_corrections'){ localStorage.setItem('cc_evv_corrections', JSON.stringify(row.data)); }
     });
     setSyncStatus('ok');
   } catch(e){ console.warn('Supabase load failed, using localStorage:', e); setSyncStatus('offline'); }
@@ -3473,7 +3485,8 @@ function copyBLToClipboard(){
 const EVV_WARN_THRESHOLD    = 5;   // agency-wide yellow
 const EVV_DANGER_THRESHOLD  = 10;  // agency-wide red
 const EVV_ATTENDANT_LIMIT   = 3;   // per-attendant red flag
-const EVV_FORM_URL          = 'https://mo-care.com/evv-correction-form';
+// Update this to wherever you host evv-correction-form.html (e.g. your GitHub Pages URL)
+const EVV_FORM_URL = window.location.href.replace(/[^/]*$/, '') + 'evv-correction-form.html';
 
 // ── Storage ──────────────────────────────────────────────────────────
 function getEVVCorrections() {
@@ -3482,6 +3495,7 @@ function getEVVCorrections() {
 }
 function saveEVVCorrections(arr) {
   localStorage.setItem('cc_evv_corrections', JSON.stringify(arr));
+  syncToSupabase('evv_corrections', arr);
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────
@@ -3595,6 +3609,125 @@ function copyEVVFormLink(btn) {
     btn.textContent = '✓ Copied!';
     setTimeout(() => btn.textContent = orig, 2000);
   });
+}
+
+// ── Pending submissions from Supabase ─────────────────────────────────
+async function loadPendingEVVSubmissions() {
+  const container = document.getElementById('evv-pending-body');
+  const badge     = document.getElementById('evv-pending-badge');
+  if (!container) return;
+
+  container.innerHTML = '<p style="font-size:.82rem;color:var(--gray)">Loading…</p>';
+
+  try {
+    const { data, error } = await sb
+      .from('evv_submissions')
+      .select('*')
+      .eq('processed', false)
+      .order('submitted_at', { ascending: false });
+
+    if (error) throw error;
+
+    if (!data || data.length === 0) {
+      badge.style.display = 'none';
+      container.innerHTML = '<p style="font-size:.82rem;color:var(--gray)">No pending submissions — all caught up ✅</p>';
+      return;
+    }
+
+    badge.textContent = data.length + ' new';
+    badge.style.display = 'inline-flex';
+
+    container.innerHTML = data.map(sub => {
+      const origTime = [sub.orig_in, sub.orig_out].filter(Boolean).join(' – ') || '—';
+      const newTime  = [sub.new_in,  sub.new_out ].filter(Boolean).join(' – ') || '—';
+      const submitted = sub.submitted_at
+        ? new Date(sub.submitted_at).toLocaleString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'})
+        : '—';
+
+      // Late check (after Saturday 11:59 PM of visit week)
+      let lateTag = '';
+      if (sub.visitdate && sub.submitdate) {
+        const visit = new Date(sub.visitdate + 'T12:00:00');
+        const cutoff = new Date(visit);
+        cutoff.setDate(visit.getDate() + (6 - visit.getDay()));
+        cutoff.setHours(23,59,59);
+        if (new Date(sub.submitdate + 'T23:59:59') > cutoff) {
+          lateTag = '<span class="badge b-red" style="font-size:.65rem;margin-left:.3rem">⚠️ Late</span>';
+        }
+      }
+
+      const sigHtml = (sig, label) => sig
+        ? `<div style="margin-top:.5rem"><div style="font-size:.68rem;color:var(--gray);margin-bottom:.2rem">${label}</div><img src="${sig}" style="max-width:180px;border:1px solid var(--border);border-radius:4px"></div>`
+        : '';
+
+      const subId = JSON.stringify(sub).replace(/"/g,"'");
+      return `<div style="border:1.5px solid var(--border);border-radius:8px;padding:1rem 1.1rem;margin-bottom:.75rem;background:var(--bg)">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;flex-wrap:wrap;gap:.5rem;margin-bottom:.65rem">
+          <div>
+            <div style="font-weight:700;font-size:.9rem">${sub.attendant} <span style="color:var(--gray)">→</span> ${sub.consumer}</div>
+            <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.35rem;align-items:center">
+              <span class="badge b-blue">📅 Visit: ${sub.visitdate||'—'}</span>
+              ${lateTag}
+              <span style="font-size:.72rem;color:var(--gray)">Submitted: ${submitted}</span>
+            </div>
+          </div>
+          <div style="display:flex;gap:.4rem;flex-shrink:0">
+            <button class="add-btn" style="background:var(--green);font-size:.75rem;padding:.3rem .65rem" onclick='acceptEVVSubmission(${subId})'>✓ Accept &amp; Log</button>
+            <button class="ibtn" style="color:var(--red);font-size:.75rem" onclick="dismissEVVSubmission('${sub.id}')">✕ Dismiss</button>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;font-size:.78rem;margin-bottom:.5rem">
+          <div><span style="color:var(--gray)">Original:</span><br><strong>${origTime}</strong></div>
+          <div><span style="color:var(--gray)">Corrected:</span><br><strong>${newTime}</strong></div>
+          <div><span style="color:var(--gray)">Reason:</span><br><strong>${sub.reason||'—'}</strong></div>
+        </div>
+        ${sub.notes ? `<div style="font-size:.78rem;background:var(--white);border-radius:6px;padding:.4rem .65rem;margin-bottom:.3rem"><span style="color:var(--gray)">Notes:</span> ${sub.notes}</div>` : ''}
+        <div style="display:flex;gap:1rem;flex-wrap:wrap">
+          ${sigHtml(sub.sig_attendant,'Attendant signature')}
+          ${sigHtml(sub.sig_consumer,'Consumer signature')}
+        </div>
+      </div>`;
+    }).join('');
+  } catch(err) {
+    console.error('loadPendingEVVSubmissions:', err);
+    container.innerHTML = `<p style="font-size:.82rem;color:var(--red-text)">Could not load submissions: ${err.message}.<br>Make sure the <code>evv_submissions</code> table exists in Supabase (see setup SQL).</p>`;
+  }
+}
+
+async function acceptEVVSubmission(sub) {
+  // Auto-fill a new correction from the submission
+  const corrections = getEVVCorrections();
+  corrections.unshift({
+    id: Date.now().toString(),
+    attendant:    sub.attendant,
+    consumer:     sub.consumer,
+    visitdate:    sub.visitdate,
+    submitdate:   sub.submitdate || '',
+    origIn:       sub.orig_in || '',
+    origOut:      sub.orig_out || '',
+    newIn:        sub.new_in || '',
+    newOut:       sub.new_out || '',
+    reason:       sub.reason || '',
+    formReceived: 'yes',
+    wellskyDone:  'no',
+    admin:        '',
+    wellskyDate:  '',
+    notes:        sub.notes || '',
+    loggedAt:     new Date().toISOString()
+  });
+  saveEVVCorrections(corrections);
+
+  // Mark submission as processed in Supabase
+  await sb.from('evv_submissions').update({ processed: true }).eq('id', sub.id);
+  await loadPendingEVVSubmissions();
+  renderEVVCorrections();
+  alert(`✅ Logged! "${sub.attendant}" correction is now in the log. Update WellSky and check the form-received box once done.`);
+}
+
+async function dismissEVVSubmission(id) {
+  if (!confirm('Dismiss this submission? It will be removed from the pending list.')) return;
+  await sb.from('evv_submissions').update({ processed: true }).eq('id', id);
+  loadPendingEVVSubmissions();
 }
 
 // ── Populate month filter ─────────────────────────────────────────────
