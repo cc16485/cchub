@@ -186,6 +186,25 @@ td{padding:.7rem .9rem;font-size:.83rem;vertical-align:middle}
 .ob-item input[type=checkbox]{accent-color:var(--teal);width:14px;height:14px;cursor:pointer}
 .ob-item.done{color:var(--gray);text-decoration:line-through}
 .ob-section{font-size:.72rem;font-weight:700;text-transform:uppercase;color:var(--navy);margin:.9rem 0 .25rem;letter-spacing:.05em}
+
+/* ── EVV Corrections ── */
+.evv-card{background:var(--white);border-radius:12px;box-shadow:0 2px 12px rgba(14,56,96,.07);padding:1.1rem 1.25rem;margin-bottom:1rem}
+.evv-card-title{display:flex;align-items:center;gap:.5rem;font-size:.9rem;font-weight:700;color:var(--navy);margin-bottom:.85rem}
+.evv-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+.evv-grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem}
+.evv-workflow{display:grid;grid-template-columns:repeat(4,1fr);font-size:.77rem}
+.evv-step{padding:.9rem 1rem;text-align:center;color:#fff}
+.evv-step-num{font-size:1.3rem;margin-bottom:.35rem}
+.evv-step-title{font-weight:700;margin-bottom:.3rem;font-size:.82rem}
+.evv-step-body{opacity:.9;line-height:1.5;font-size:.76rem}
+.evv-alert-warn{background:var(--amber-bg);border:1.5px solid #fcd34d;border-radius:8px;padding:.75rem 1rem;font-size:.8rem;color:var(--amber-text);margin-bottom:.85rem}
+.evv-stat-box{text-align:center;padding:1rem;background:var(--bg);border-radius:8px}
+.evv-stat-num{font-size:1.6rem;font-weight:700;line-height:1.1}
+.evv-stat-lbl{font-size:.72rem;color:var(--gray);margin-top:.3rem}
+.evv-form-link-bar{background:#f0f7ff;border:1.5px solid #b8d4ef;border-radius:8px;padding:.75rem 1rem;display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;margin-bottom:.85rem}
+.evv-copy-btn{padding:.3rem .7rem;background:var(--teal);color:#fff;border:none;border-radius:6px;font-family:inherit;font-size:.75rem;font-weight:600;cursor:pointer;white-space:nowrap}
+.evv-copy-btn:hover{opacity:.85}
+.evv-deadline-bar{background:var(--navy);color:#fff;border-radius:8px;padding:.6rem 1rem;font-size:.8rem;display:flex;align-items:center;gap:.6rem;margin-bottom:.85rem}
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -228,6 +247,7 @@ td{padding:.7rem .9rem;font-size:.83rem;vertical-align:middle}
     <div class="tab" onclick="switchTab('training',this)"><span class="ti">🎓</span> Training</div>
     <div class="tab" onclick="switchTab('compliance',this)"><span class="ti">✅</span> Active Compliance</div>
     <div class="tab" onclick="switchTab('offboarding',this)"><span class="ti">🚪</span> Offboarding</div>
+    <div class="tab" onclick="switchTab('evv',this)"><span class="ti">📝</span> EVV Corrections</div>
   </div>
 
   <div class="tab-content-wrap">
@@ -410,6 +430,253 @@ td{padding:.7rem .9rem;font-size:.83rem;vertical-align:middle}
       </div>
     </div>
 
+    <!-- ══════════════════════════════ EVV CORRECTIONS ══════════════════════════════ -->
+    <div class="panel" id="panel-evv">
+
+      <!-- Deadline reminder bar -->
+      <div class="evv-deadline-bar">
+        ⏰ <strong>EVV Correction Deadline: Saturday 11:59 PM</strong> each pay period (Sun–Sat). &nbsp;|&nbsp; EVV system: <strong>WellSky Personal Care</strong> &nbsp;|&nbsp; Portal: <a href="https://mycaringcds.com" target="_blank" style="color:var(--yellow)">mycaringcds.com</a>
+      </div>
+
+      <!-- Form link bar -->
+      <div class="evv-form-link-bar">
+        <div style="font-size:.8rem;font-weight:700;color:var(--navy);white-space:nowrap">📋 Attendant Correction Form</div>
+        <code style="font-size:.82rem;font-weight:600;color:var(--navy);background:#dde9f8;padding:.25rem .65rem;border-radius:6px;flex:1;min-width:160px">mo-care.com/reference-form</code>
+        <button class="evv-copy-btn" onclick="copyEVVFormLink(this)">📋 Copy Link</button>
+        <div style="font-size:.75rem;color:#555">Share this link with the attendant when they need to submit a correction</div>
+      </div>
+
+      <!-- Workflow banner -->
+      <div class="evv-card" style="background:#f0f7ff;border-left:4px solid var(--navy);padding-bottom:.85rem">
+        <div class="evv-card-title">🔄 Required Correction Workflow — Follow Every Time</div>
+        <div class="evv-workflow" style="border-radius:8px;overflow:hidden">
+          <div class="evv-step" style="background:var(--navy)">
+            <div class="evv-step-num">1️⃣</div>
+            <div class="evv-step-title">Attendant Submits</div>
+            <div class="evv-step-body">Attendant completes the <strong>EVV Correction Form</strong> — explains the error, correct time, and reason. Must submit <strong>before</strong> admin makes any change.</div>
+          </div>
+          <div class="evv-step" style="background:#1a5e9b">
+            <div class="evv-step-num">2️⃣</div>
+            <div class="evv-step-title">Admin Reviews</div>
+            <div class="evv-step-body">VA verifies the request against the consumer's care plan. Approves or denies the correction.</div>
+          </div>
+          <div class="evv-step" style="background:var(--teal)">
+            <div class="evv-step-num">3️⃣</div>
+            <div class="evv-step-title">Update WellSky</div>
+            <div class="evv-step-body">VA updates the visit in the <strong>WellSky calendar</strong> with corrected clock-in/out times so the attendant is paid correctly.</div>
+          </div>
+          <div class="evv-step" style="background:var(--green)">
+            <div class="evv-step-num">4️⃣</div>
+            <div class="evv-step-title">Log &amp; File</div>
+            <div class="evv-step-body">Log it here. File the signed form in the <strong>attendant's file</strong> AND the <strong>consumer's file</strong>. Both must retain documentation.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Monthly volume monitor -->
+      <div class="evv-card" id="evv-threshold-card">
+        <div class="evv-card-title">⚠️ Monthly Volume Monitor — EVV Compliance Tracker</div>
+        <div class="evv-alert-warn">
+          ⚠️ <strong>Missouri Medicaid (MMAC) treats high manual correction rates as a potential fraud indicator.</strong> Our internal standard is <strong>≥85% real-time EVV compliance</strong> — no more than 15% of visits should require a manual correction. Every correction must have a documented reason and a signed form on file.
+        </div>
+        <div class="evv-grid-3" style="margin-bottom:.85rem">
+          <div class="evv-stat-box">
+            <div class="evv-stat-num v-green" id="evv-thresh-total">0</div>
+            <div class="evv-stat-lbl">Total corrections this month</div>
+          </div>
+          <div class="evv-stat-box">
+            <div class="evv-stat-num v-green" id="evv-thresh-max-count">0</div>
+            <div class="evv-stat-lbl">Highest single-attendant count</div>
+            <div style="font-size:.7rem;color:var(--gray);margin-top:.2rem" id="evv-thresh-max-name">—</div>
+          </div>
+          <div class="evv-stat-box" style="text-align:left">
+            <div style="font-size:.72rem;color:var(--gray);margin-bottom:.4rem">Internal thresholds</div>
+            <div style="font-size:.75rem;margin-top:.2rem">✅ Target: <strong>≥85%</strong> real-time EVV rate</div>
+            <div style="font-size:.75rem;margin-top:.2rem">🟡 Agency-wide: <strong>5+</strong> corrections/month = review</div>
+            <div style="font-size:.75rem;margin-top:.2rem">🔴 Agency-wide: <strong>10+</strong> = red flag</div>
+            <div style="font-size:.75rem;margin-top:.2rem">🔴 Per attendant: <strong>3+</strong>/month = red flag</div>
+          </div>
+        </div>
+        <div id="evv-attendant-summary">
+          <p style="font-size:.82rem;color:var(--gray)">No corrections logged this month.</p>
+        </div>
+      </div>
+
+      <!-- Correction log table -->
+      <div class="evv-card">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.75rem;flex-wrap:wrap;gap:.5rem">
+          <div class="evv-card-title" style="margin-bottom:0">📋 Correction Log — <span id="evv-month-label"></span></div>
+          <button class="add-btn" onclick="openEVVModal()">+ Log New Correction</button>
+        </div>
+        <div style="display:flex;gap:.5rem;margin-bottom:.75rem;flex-wrap:wrap;align-items:center">
+          <select id="evv-filter-month" onchange="renderEVVCorrections()" style="font-size:.8rem;padding:.3rem .55rem;border:1.5px solid var(--border);border-radius:6px;font-family:inherit">
+            <option value="">All Months</option>
+          </select>
+          <select id="evv-filter-status" onchange="renderEVVCorrections()" style="font-size:.8rem;padding:.3rem .55rem;border:1.5px solid var(--border);border-radius:6px;font-family:inherit">
+            <option value="">All Statuses</option>
+            <option value="pending_form">⏳ Awaiting Form</option>
+            <option value="pending_wellsky">📝 Form Received — Awaiting WellSky</option>
+            <option value="complete">✓ Complete</option>
+            <option value="denied">Denied</option>
+          </select>
+          <span style="font-size:.78rem;color:var(--gray)" id="evv-filter-count"></span>
+        </div>
+        <div class="tbl-wrap">
+          <table>
+            <thead><tr>
+              <th>#</th>
+              <th>Visit Date</th>
+              <th>Attendant</th>
+              <th>Consumer</th>
+              <th>Original Time</th>
+              <th>Corrected Time</th>
+              <th>Reason</th>
+              <th>Form on File</th>
+              <th>WellSky Updated</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr></thead>
+            <tbody id="evv-table-body">
+              <tr><td colspan="11"><div class="empty">No corrections logged yet. Click "+ Log New Correction" to add one.</div></td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Policy reminder -->
+      <div class="evv-card">
+        <div class="evv-card-title">📌 EVV Correction Policy &amp; Acceptable Reasons</div>
+        <div class="evv-grid-2">
+          <div>
+            <div style="font-weight:700;font-size:.82rem;color:var(--green-text);margin-bottom:.5rem">✅ Acceptable Reasons for Manual Correction</div>
+            <ul style="font-size:.8rem;line-height:2;padding-left:1.1rem;color:var(--navy)">
+              <li>Phone was dead / no battery at clock-in or out</li>
+              <li>App crashed or technical error (screenshot recommended)</li>
+              <li>No cell service at consumer's location (rural area)</li>
+              <li>Attendant forgot to clock in or out (occasional — not recurring)</li>
+              <li>WellSky app update caused disruption</li>
+              <li>Consumer's home phone not available for landline EVV</li>
+            </ul>
+          </div>
+          <div>
+            <div style="font-weight:700;font-size:.82rem;color:var(--red-text);margin-bottom:.5rem">🚫 Red Flags — Patterns That Trigger MMAC Scrutiny</div>
+            <ul style="font-size:.8rem;line-height:2;padding-left:1.1rem;color:var(--navy)">
+              <li>Same attendant requesting corrections repeatedly</li>
+              <li>Corrections that extend shift time (not just fix a missed clock)</li>
+              <li>Corrections submitted days after the visit</li>
+              <li>No signed correction form on file for an adjustment</li>
+              <li>3+ corrections in one month for the same attendant</li>
+              <li>10+ corrections agency-wide in one month</li>
+              <li>Pattern of corrections always on the same day/consumer</li>
+            </ul>
+          </div>
+        </div>
+        <div style="margin-top:.85rem;padding:.65rem .9rem;background:var(--amber-bg);border-radius:6px;font-size:.79rem;color:var(--amber-text)">
+          ⚠️ <strong>Documentation Rule:</strong> Every manual adjustment in WellSky must have a corresponding signed EVV Correction Form on file <em>before</em> the correction is made. If MMAC audits a claim and there is no form, the adjustment looks fraudulent. <strong>Saturday 11:59 PM</strong> weekly deadline applies — corrections for the week must be in before that cutoff.
+        </div>
+      </div>
+
+    </div>
+
+  </div>
+</div>
+
+<!-- MODAL: Log EVV Correction -->
+<div class="overlay" id="evv-correction-modal">
+  <div class="modal" style="max-width:660px">
+    <h3 style="color:var(--navy)">📝 Log EVV Correction</h3>
+    <div class="fg">
+      <div class="grp full" style="background:var(--amber-bg);border-radius:8px;padding:.55rem .8rem;font-size:.78rem;color:var(--amber-text);margin-bottom:.25rem">
+        ⚠️ The signed correction form must be received <strong>before</strong> updating WellSky. Log this record after the form is on file.
+      </div>
+
+      <div class="sect-lbl">Visit Details</div>
+      <div class="grp">
+        <label>Attendant Name *</label>
+        <input type="text" id="evv-cor-attendant" placeholder="First Last">
+      </div>
+      <div class="grp">
+        <label>Consumer Name *</label>
+        <input type="text" id="evv-cor-consumer" placeholder="First Last">
+      </div>
+      <div class="grp">
+        <label>Date of Visit *</label>
+        <input type="date" id="evv-cor-visitdate">
+      </div>
+      <div class="grp">
+        <label>Date Form Submitted</label>
+        <input type="date" id="evv-cor-submitdate">
+      </div>
+
+      <div class="sect-lbl">Time Correction</div>
+      <div class="grp">
+        <label>Original Clock-In</label>
+        <input type="time" id="evv-cor-orig-in">
+      </div>
+      <div class="grp">
+        <label>Original Clock-Out</label>
+        <input type="time" id="evv-cor-orig-out">
+      </div>
+      <div class="grp">
+        <label>Corrected Clock-In</label>
+        <input type="time" id="evv-cor-new-in">
+      </div>
+      <div class="grp">
+        <label>Corrected Clock-Out</label>
+        <input type="time" id="evv-cor-new-out">
+      </div>
+
+      <div class="sect-lbl">Reason &amp; Documentation</div>
+      <div class="grp full">
+        <label>Reason for Correction *</label>
+        <select id="evv-cor-reason" onchange="toggleEVVReasonOther(this.value)">
+          <option value="">— Select a reason —</option>
+          <option>Phone was dead / no battery</option>
+          <option>App crashed or technical error</option>
+          <option>No cell service at consumer location</option>
+          <option>Attendant forgot to clock in or out</option>
+          <option>WellSky app update caused disruption</option>
+          <option>Consumer home phone unavailable</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="grp full" id="evv-reason-other-grp" style="display:none">
+        <label>Describe Other Reason</label>
+        <input type="text" id="evv-cor-reason-other" placeholder="Explain the reason…">
+      </div>
+      <div class="grp">
+        <label>Correction Form Received?</label>
+        <select id="evv-cor-form-received">
+          <option value="no">No — Not yet received</option>
+          <option value="yes">Yes — On file</option>
+        </select>
+      </div>
+      <div class="grp">
+        <label>WellSky Updated?</label>
+        <select id="evv-cor-wellsky-done">
+          <option value="no">No — Not yet updated</option>
+          <option value="yes">Yes — Updated</option>
+        </select>
+      </div>
+
+      <div class="sect-lbl">Admin Info</div>
+      <div class="grp">
+        <label>Processed By (Admin)</label>
+        <input type="text" id="evv-cor-admin" placeholder="Your name">
+      </div>
+      <div class="grp">
+        <label>Date WellSky Updated</label>
+        <input type="date" id="evv-cor-wellsky-date">
+      </div>
+      <div class="grp full">
+        <label>Notes</label>
+        <input type="text" id="evv-cor-notes" placeholder="Any additional notes…">
+      </div>
+    </div>
+    <div class="modal-acts">
+      <button class="btn-cancel" onclick="closeModal('evv-correction-modal')">Cancel</button>
+      <button class="btn-save" onclick="saveEVVCorrection()">Save Correction Log</button>
+    </div>
   </div>
 </div>
 
@@ -1377,6 +1644,7 @@ function switchTab(name, btn){
   btn.classList.add('active');
   document.getElementById('panel-'+name).classList.add('active');
   if(name==='orientations') renderOrientations();
+  if(name==='evv') renderEVVCorrections();
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────
@@ -3196,6 +3464,263 @@ function copyBLToClipboard(){
     btn.textContent='✅ Copied!'; btn.style.background='var(--green)';
     setTimeout(()=>{ btn.textContent='📋 Copy Link'; btn.style.background='var(--teal)'; },2000);
   });
+}
+
+// ╔══════════════════════════════════════════════════════════════╗
+// ║                  EVV CORRECTIONS MODULE                     ║
+// ╚══════════════════════════════════════════════════════════════╝
+
+const EVV_WARN_THRESHOLD    = 5;   // agency-wide yellow
+const EVV_DANGER_THRESHOLD  = 10;  // agency-wide red
+const EVV_ATTENDANT_LIMIT   = 3;   // per-attendant red flag
+const EVV_FORM_URL          = 'https://mo-care.com/evv-correction-form';
+
+// ── Storage ──────────────────────────────────────────────────────────
+function getEVVCorrections() {
+  try { return JSON.parse(localStorage.getItem('cc_evv_corrections')) || []; }
+  catch(e) { return []; }
+}
+function saveEVVCorrections(arr) {
+  localStorage.setItem('cc_evv_corrections', JSON.stringify(arr));
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────
+function evvGetPayPeriod(dateStr) {
+  if (!dateStr) return '—';
+  const d = new Date(dateStr + 'T12:00:00');
+  const sun = new Date(d); sun.setDate(d.getDate() - d.getDay());
+  const sat = new Date(sun); sat.setDate(sun.getDate() + 6);
+  const fmt = dt => dt.toLocaleDateString('en-US',{weekday:'short',month:'short',day:'numeric'});
+  return fmt(sun) + ' – ' + fmt(sat);
+}
+
+function evvIsLate(visitdate, submitdate) {
+  if (!visitdate || !submitdate) return false;
+  const visit = new Date(visitdate + 'T12:00:00');
+  const cutoff = new Date(visit);
+  cutoff.setDate(visit.getDate() + (6 - visit.getDay()));
+  cutoff.setHours(23, 59, 59);
+  return new Date(submitdate + 'T23:59:59') > cutoff;
+}
+
+function evvGetStatus(c) {
+  if (c.status === 'denied') return 'denied';
+  if (c.wellskyDone === 'yes' && c.formReceived === 'yes') return 'complete';
+  if (c.formReceived === 'yes') return 'pending_wellsky';
+  return 'pending_form';
+}
+
+function evvStatusBadge(status) {
+  if (status === 'complete')         return '<span class="badge b-green">✓ Complete</span>';
+  if (status === 'pending_wellsky')  return '<span class="badge b-amber">⏳ Awaiting WellSky</span>';
+  if (status === 'denied')           return '<span class="badge b-red">Denied</span>';
+  return '<span class="badge b-red">⏳ Awaiting Form</span>';
+}
+
+// ── Open modal ────────────────────────────────────────────────────────
+function openEVVModal() {
+  // Reset all fields
+  ['evv-cor-attendant','evv-cor-consumer','evv-cor-reason-other','evv-cor-admin','evv-cor-notes'].forEach(id=>{
+    const el = document.getElementById(id); if(el) el.value='';
+  });
+  ['evv-cor-visitdate','evv-cor-submitdate','evv-cor-orig-in','evv-cor-orig-out',
+   'evv-cor-new-in','evv-cor-new-out','evv-cor-wellsky-date'].forEach(id=>{
+    const el = document.getElementById(id); if(el) el.value='';
+  });
+  document.getElementById('evv-cor-reason').value = '';
+  document.getElementById('evv-cor-form-received').value = 'no';
+  document.getElementById('evv-cor-wellsky-done').value = 'no';
+  document.getElementById('evv-reason-other-grp').style.display = 'none';
+  document.getElementById('evv-correction-modal').classList.add('open');
+}
+
+function toggleEVVReasonOther(val) {
+  document.getElementById('evv-reason-other-grp').style.display = val === 'Other' ? 'grid' : 'none';
+}
+
+// ── Save new correction ───────────────────────────────────────────────
+function saveEVVCorrection() {
+  const attendant = document.getElementById('evv-cor-attendant').value.trim();
+  const consumer  = document.getElementById('evv-cor-consumer').value.trim();
+  const visitdate = document.getElementById('evv-cor-visitdate').value;
+  if (!attendant || !consumer || !visitdate) {
+    alert('Attendant name, consumer name, and visit date are required.'); return;
+  }
+  const reason = document.getElementById('evv-cor-reason').value;
+  const reasonOther = document.getElementById('evv-cor-reason-other').value.trim();
+  const corrections = getEVVCorrections();
+  corrections.unshift({
+    id: Date.now().toString(),
+    attendant, consumer, visitdate,
+    submitdate:    document.getElementById('evv-cor-submitdate').value,
+    origIn:        document.getElementById('evv-cor-orig-in').value,
+    origOut:       document.getElementById('evv-cor-orig-out').value,
+    newIn:         document.getElementById('evv-cor-new-in').value,
+    newOut:        document.getElementById('evv-cor-new-out').value,
+    reason:        reason === 'Other' ? (reasonOther || 'Other') : reason,
+    formReceived:  document.getElementById('evv-cor-form-received').value,
+    wellskyDone:   document.getElementById('evv-cor-wellsky-done').value,
+    admin:         document.getElementById('evv-cor-admin').value.trim(),
+    wellskyDate:   document.getElementById('evv-cor-wellsky-date').value,
+    notes:         document.getElementById('evv-cor-notes').value.trim(),
+    loggedAt:      new Date().toISOString()
+  });
+  saveEVVCorrections(corrections);
+  closeModal('evv-correction-modal');
+  renderEVVCorrections();
+}
+
+// ── Toggle WellSky checkbox inline ───────────────────────────────────
+function evvToggleWellsky(id, checked) {
+  const corrections = getEVVCorrections();
+  const idx = corrections.findIndex(c => c.id === id);
+  if (idx === -1) return;
+  corrections[idx].wellskyDone = checked ? 'yes' : 'no';
+  if (checked) corrections[idx].wellskyDate = new Date().toISOString().split('T')[0];
+  saveEVVCorrections(corrections);
+  renderEVVCorrections();
+}
+
+// ── Remove a record ───────────────────────────────────────────────────
+function evvRemove(id) {
+  if (!confirm('Remove this correction record?')) return;
+  saveEVVCorrections(getEVVCorrections().filter(c => c.id !== id));
+  renderEVVCorrections();
+}
+
+// ── Copy form link ────────────────────────────────────────────────────
+function copyEVVFormLink(btn) {
+  navigator.clipboard.writeText(EVV_FORM_URL).then(() => {
+    const orig = btn.textContent;
+    btn.textContent = '✓ Copied!';
+    setTimeout(() => btn.textContent = orig, 2000);
+  });
+}
+
+// ── Populate month filter ─────────────────────────────────────────────
+function evvPopulateMonths() {
+  const corrections = getEVVCorrections();
+  const months = new Set();
+  corrections.forEach(c => { if (c.visitdate) months.add(c.visitdate.substring(0,7)); });
+  const sel = document.getElementById('evv-filter-month');
+  if (!sel) return;
+  const current = sel.value;
+  sel.innerHTML = '<option value="">All Months</option>';
+  Array.from(months).sort().reverse().forEach(m => {
+    const [yr, mo] = m.split('-');
+    const label = new Date(yr, mo-1).toLocaleString('en-US',{month:'long',year:'numeric'});
+    sel.innerHTML += `<option value="${m}" ${m===current?'selected':''}>${label}</option>`;
+  });
+}
+
+// ── Main render ───────────────────────────────────────────────────────
+function renderEVVCorrections() {
+  const corrections = getEVVCorrections();
+  const now = new Date();
+  const currentMonth = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+
+  // Month label
+  const labelEl = document.getElementById('evv-month-label');
+  if (labelEl) labelEl.textContent = now.toLocaleString('en-US',{month:'long',year:'numeric'});
+
+  evvPopulateMonths();
+
+  const filterMonth  = document.getElementById('evv-filter-month')?.value  || '';
+  const filterStatus = document.getElementById('evv-filter-status')?.value || '';
+
+  let filtered = corrections;
+  if (filterMonth)  filtered = filtered.filter(c => c.visitdate && c.visitdate.startsWith(filterMonth));
+  if (filterStatus) filtered = filtered.filter(c => evvGetStatus(c) === filterStatus);
+
+  const countEl = document.getElementById('evv-filter-count');
+  if (countEl) countEl.textContent = `${filtered.length} record${filtered.length!==1?'s':''}`;
+
+  const tbody = document.getElementById('evv-table-body');
+  if (!tbody) return;
+
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="11"><div class="empty">No corrections match the current filter.</div></td></tr>';
+  } else {
+    tbody.innerHTML = filtered.map((c, i) => {
+      const status   = evvGetStatus(c);
+      const origTime = [(c.origIn||'?'), (c.origOut||'?')].join(' – ');
+      const newTime  = [(c.newIn||'?'),  (c.newOut||'?')].join(' – ');
+      const formBadge = c.formReceived === 'yes'
+        ? '<span class="badge b-green">✓ On File</span>'
+        : '<span class="badge b-red">Missing</span>';
+      const wsDone = c.wellskyDone === 'yes';
+      const wsCell = `<label style="display:flex;align-items:center;gap:6px;cursor:pointer;white-space:nowrap">
+          <input type="checkbox" ${wsDone?'checked':''} onchange="evvToggleWellsky('${c.id}',this.checked)"
+            style="width:16px;height:16px;accent-color:var(--green);cursor:pointer;flex-shrink:0">
+          <span style="font-size:.72rem;color:${wsDone?'var(--green-text)':'var(--red-text)'}">
+            ${wsDone ? (c.wellskyDate ? 'Done '+c.wellskyDate : 'Done') : 'Not yet'}
+          </span>
+        </label>
+        ${c.admin ? `<div style="font-size:.67rem;color:var(--gray);margin-top:2px">By: ${c.admin}</div>` : ''}`;
+      const lateTag = evvIsLate(c.visitdate, c.submitdate)
+        ? '<span class="badge b-red" style="font-size:.62rem">Late</span>' : '';
+      return `<tr>
+        <td style="font-size:.72rem;color:var(--gray)">${corrections.indexOf(c)+1}</td>
+        <td><strong style="font-size:.83rem">${c.visitdate}</strong>${c.submitdate?`<div class="sub">Submitted: ${c.submitdate} ${lateTag}</div>`:''}</td>
+        <td class="name-cell">${c.attendant}</td>
+        <td>${c.consumer}</td>
+        <td style="font-size:.78rem;color:var(--gray)">${origTime}</td>
+        <td style="font-size:.78rem;font-weight:600">${newTime}</td>
+        <td style="font-size:.78rem;max-width:150px">${c.reason||'—'}${c.notes?`<div class="sub">${c.notes}</div>`:''}</td>
+        <td>${formBadge}</td>
+        <td>${wsCell}</td>
+        <td>${evvStatusBadge(status)}</td>
+        <td class="acts">
+          <button class="ibtn" style="color:var(--red)" onclick="evvRemove('${c.id}')">✕</button>
+        </td>
+      </tr>`;
+    }).join('');
+  }
+
+  // ── Threshold summary ──
+  const thisMonth = corrections.filter(c => c.visitdate && c.visitdate.startsWith(currentMonth));
+  const total = thisMonth.length;
+
+  const totalEl = document.getElementById('evv-thresh-total');
+  if (totalEl) {
+    totalEl.textContent = total;
+    totalEl.className = 'evv-stat-num ' +
+      (total >= EVV_DANGER_THRESHOLD ? 'v-red' : total >= EVV_WARN_THRESHOLD ? 'v-amber' : 'v-green');
+  }
+
+  // Per-attendant
+  const byAtt = {};
+  thisMonth.forEach(c => { byAtt[c.attendant] = (byAtt[c.attendant]||0)+1; });
+  const sorted = Object.entries(byAtt).sort((a,b)=>b[1]-a[1]);
+  const maxCount = sorted.length > 0 ? sorted[0][1] : 0;
+  const maxName  = sorted.length > 0 ? sorted[0][0] : '—';
+
+  const maxCountEl = document.getElementById('evv-thresh-max-count');
+  if (maxCountEl) {
+    maxCountEl.textContent = maxCount;
+    maxCountEl.className = 'evv-stat-num ' +
+      (maxCount >= EVV_ATTENDANT_LIMIT ? 'v-red' : maxCount >= 2 ? 'v-amber' : 'v-green');
+  }
+  const maxNameEl = document.getElementById('evv-thresh-max-name');
+  if (maxNameEl) maxNameEl.textContent = maxName;
+
+  const summaryDiv = document.getElementById('evv-attendant-summary');
+  if (!summaryDiv) return;
+  if (sorted.length === 0) {
+    summaryDiv.innerHTML = '<p style="font-size:.82rem;color:var(--gray)">No corrections logged this month.</p>';
+  } else {
+    summaryDiv.innerHTML =
+      '<div style="font-size:.72rem;font-weight:700;color:var(--gray);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem">This Month — By Attendant</div>' +
+      '<div style="display:flex;flex-wrap:wrap;gap:.5rem">' +
+      sorted.map(([name, count]) => {
+        const color = count >= EVV_ATTENDANT_LIMIT ? 'var(--red)' : count >= 2 ? '#F97316' : 'var(--green)';
+        const flag  = count >= EVV_ATTENDANT_LIMIT ? ' ⚠️ RED FLAG' : count >= 2 ? ' 🟡 Watch' : '';
+        return `<div style="padding:.5rem .85rem;border-radius:8px;background:var(--bg);border-left:4px solid ${color}">
+          <div style="font-weight:700;font-size:.82rem">${name}</div>
+          <div style="font-size:.77rem;color:${color}">${count} correction${count!==1?'s':''}${flag}</div>
+        </div>`;
+      }).join('') + '</div>';
+  }
 }
 </script>
 </body>
