@@ -226,7 +226,7 @@ td{padding:.7rem .9rem;font-size:.83rem;vertical-align:middle}
   <div class="login-card">
     <img src="https://images.leadconnectorhq.com/image/f_webp/q_80/r_1200/u_https://assets.cdn.filesafe.space/Recp0AhyMh8lrtKJ9kaj/media/691b9707bb3d037e0ad689bf.png" alt="Caring Companions">
     <h2>Staffing Hub</h2>
-    <p>HR admin access only</p>
+    <p>Caring Companions Admin Access Only</p>
     <input type="email" id="login-email" placeholder="Email address" autocomplete="email" style="margin-bottom:.75rem">
     <input type="password" id="pwd" placeholder="Password" autocomplete="current-password">
     <button class="btn-login" id="login-btn" onclick="doLogin()">Sign In</button>
@@ -442,6 +442,91 @@ td{padding:.7rem .9rem;font-size:.83rem;vertical-align:middle}
           <div class="guide-step"><div class="guide-step-num">5</div><div class="guide-step-body">After the session, switch to <strong>Past Sessions &amp; Attendance</strong> and mark each attendee: ✅ Attended, 🚫 No-Show, 📅 Rescheduled, or ❌ Canceled.</div></div>
           <div class="guide-step"><div class="guide-step-num">6</div><div class="guide-step-body">For anyone who <strong>Attended</strong>, click the <strong>🎓 Promote</strong> button to move them into the Active Compliance tab as a new caregiver.</div></div>
           <div class="guide-step"><div class="guide-step-num">7</div><div class="guide-step-body">For <strong>No-Shows</strong>, follow up and rebook them into the next available session using a new booking link.</div></div>
+        </div>
+      </div>
+
+      <!-- ── Ready for Orientation Queue ──────────────────────────────── -->
+      <div id="orient-ready-queue" style="margin-bottom:1rem"></div>
+
+      <!-- ── Orientation Settings (collapsible, Augusta-inspired) ──────── -->
+      <div class="tab-guide" style="margin-bottom:1rem">
+        <div class="tab-guide-hdr" onclick="toggleGuide('orient-cfg')">
+          <span class="tab-guide-title">⚙️ Orientation Settings — Schedule &amp; Defaults</span>
+          <span class="tab-guide-arrow" id="guide-arrow-orient-cfg">▼</span>
+        </div>
+        <div class="tab-guide-body" id="guide-body-orient-cfg">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:start">
+
+            <!-- LEFT: Weekly Recurring Schedule -->
+            <div>
+              <div style="font-size:.72rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem">Recurring Weekly Schedule</div>
+              <div id="orient-schedule-days" style="display:flex;flex-direction:column;gap:0">
+                <!-- Rows rendered by initOrientSettings() -->
+              </div>
+              <div style="margin-top:1.1rem">
+                <div style="font-size:.72rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem">Generate Sessions</div>
+                <div style="display:flex;align-items:center;gap:.5rem;flex-wrap:wrap">
+                  <select id="orient-gen-weeks" onchange="updateOrientGenPreview()" style="padding:.32rem .6rem;border:1.5px solid var(--border);border-radius:7px;font-size:.8rem;font-family:inherit">
+                    <option value="4">Next 4 weeks</option>
+                    <option value="8" selected>Next 8 weeks</option>
+                    <option value="12">Next 12 weeks</option>
+                    <option value="16">Next 16 weeks</option>
+                  </select>
+                  <button onclick="generateOrientSessions()" style="padding:.32rem .95rem;background:var(--navy);color:#fff;border:none;border-radius:7px;font-size:.8rem;font-weight:600;cursor:pointer;font-family:inherit">Generate Sessions</button>
+                </div>
+                <div id="orient-gen-preview" style="font-size:.72rem;color:var(--gray);margin-top:.4rem;line-height:1.5"></div>
+              </div>
+            </div>
+
+            <!-- RIGHT: Session Defaults -->
+            <div>
+              <div style="font-size:.72rem;font-weight:700;color:var(--navy);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.75rem">Session Defaults</div>
+              <div style="display:flex;flex-direction:column;gap:.7rem">
+                <div>
+                  <label style="font-size:.75rem;color:var(--gray);display:block;margin-bottom:.25rem;font-weight:600">Duration</label>
+                  <select id="orient-cfg-duration" style="width:100%;padding:.38rem .65rem;border:1.5px solid var(--border);border-radius:7px;font-size:.82rem;font-family:inherit">
+                    <option value="1">1 hour</option>
+                    <option value="1.5">1.5 hours</option>
+                    <option value="2" selected>2 hours</option>
+                    <option value="2.5">2.5 hours</option>
+                    <option value="3">3 hours</option>
+                  </select>
+                </div>
+                <div>
+                  <label style="font-size:.75rem;color:var(--gray);display:block;margin-bottom:.25rem;font-weight:600">Max Capacity (per session)</label>
+                  <select id="orient-cfg-capacity" style="width:100%;padding:.38rem .65rem;border:1.5px solid var(--border);border-radius:7px;font-size:.82rem;font-family:inherit">
+                    <option value="2">2 people</option>
+                    <option value="3">3 people</option>
+                    <option value="4">4 people</option>
+                    <option value="5">5 people</option>
+                    <option value="6" selected>6 people</option>
+                    <option value="8">8 people</option>
+                    <option value="10">10 people</option>
+                  </select>
+                </div>
+                <div>
+                  <label style="font-size:.75rem;color:var(--gray);display:block;margin-bottom:.25rem;font-weight:600">Default Facilitator</label>
+                  <input type="text" id="orient-cfg-facilitator" placeholder="e.g. Samantha" list="facilitator-list" style="width:100%;padding:.38rem .65rem;border:1.5px solid var(--border);border-radius:7px;font-size:.82rem;font-family:inherit;box-sizing:border-box">
+                </div>
+                <div>
+                  <label style="font-size:.75rem;color:var(--gray);display:block;margin-bottom:.25rem;font-weight:600">Location</label>
+                  <div style="display:flex;gap:.85rem;margin-bottom:.4rem">
+                    <label style="display:flex;align-items:center;gap:.4rem;font-size:.82rem;cursor:pointer">
+                      <input type="radio" name="orient-cfg-loc" value="inperson" checked style="accent-color:var(--navy)"> In-Person
+                    </label>
+                    <label style="display:flex;align-items:center;gap:.4rem;font-size:.82rem;cursor:pointer">
+                      <input type="radio" name="orient-cfg-loc" value="remote" style="accent-color:var(--navy)"> Remote
+                    </label>
+                  </div>
+                  <input type="text" id="orient-cfg-address" value="1331 N Stewart Ave Ste B, Springfield MO 65802" placeholder="Location address" style="width:100%;padding:.38rem .65rem;border:1.5px solid var(--border);border-radius:7px;font-size:.82rem;font-family:inherit;box-sizing:border-box">
+                </div>
+              </div>
+              <div style="margin-top:1rem;display:flex;justify-content:flex-end">
+                <button onclick="saveOrientSettings()" id="orient-cfg-save-btn" style="padding:.38rem 1.1rem;background:var(--teal);color:#fff;border:none;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer;font-family:inherit">Save Settings</button>
+              </div>
+            </div>
+
+          </div>
         </div>
       </div>
 
@@ -2446,7 +2531,7 @@ function switchTab(name, btn){
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
   btn.classList.add('active');
   document.getElementById('panel-'+name).classList.add('active');
-  if(name==='orientations') renderOrientations();
+  if(name==='orientations'){ renderOrientations(); initOrientSettings(); }
   if(name==='evv') { renderEVVCorrections(); loadPendingEVVSubmissions(); }
 }
 
@@ -3378,7 +3463,246 @@ function sessDateShort(dateStr){
   };
 }
 
+// ── ORIENTATION SETTINGS ─────────────────────────────────────────────
+
+const DEFAULT_ORIENT_SCHEDULE = {
+  mon:{enabled:false,start:'09:00',end:'17:00'},
+  tue:{enabled:false,start:'09:00',end:'17:00'},
+  wed:{enabled:true, start:'12:00',end:'14:00'},
+  thu:{enabled:false,start:'09:00',end:'17:00'},
+  fri:{enabled:true, start:'12:00',end:'14:00'},
+  sat:{enabled:false,start:'09:00',end:'17:00'},
+  sun:{enabled:false,start:'09:00',end:'17:00'},
+};
+
+function getOrientConfig(){
+  return appSettings.orient_config || {
+    schedule: DEFAULT_ORIENT_SCHEDULE,
+    duration: 2, capacity: 6, facilitator: '', location: 'inperson',
+    address: '1331 N Stewart Ave Ste B, Springfield MO 65802'
+  };
+}
+
+function buildTimeOptions(selectedVal){
+  let html = '';
+  for(let h=6; h<=21; h++){
+    for(let m=0; m<60; m+=30){
+      const val = `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}`;
+      const ampm = h < 12 ? 'AM' : 'PM';
+      const h12  = h % 12 || 12;
+      const label = `${h12}:${String(m).padStart(2,'0')} ${ampm}`;
+      html += `<option value="${val}"${val===selectedVal?' selected':''}>${label}</option>`;
+    }
+  }
+  return html;
+}
+
+function initOrientSettings(){
+  const container = document.getElementById('orient-schedule-days');
+  if(!container) return;
+  const cfg = getOrientConfig();
+  const sched = cfg.schedule || DEFAULT_ORIENT_SCHEDULE;
+  const DAYS = [
+    {key:'mon',label:'Monday'},   {key:'tue',label:'Tuesday'},
+    {key:'wed',label:'Wednesday'},{key:'thu',label:'Thursday'},
+    {key:'fri',label:'Friday'},   {key:'sat',label:'Saturday'},
+    {key:'sun',label:'Sunday'}
+  ];
+  container.innerHTML = DAYS.map(({key,label}) => {
+    const dc = sched[key] || {enabled:false,start:'09:00',end:'17:00'};
+    const on = dc.enabled;
+    return `<div style="display:flex;align-items:center;gap:.65rem;padding:.4rem 0;border-bottom:1px solid var(--border)">
+      <div id="odt-wrap-${key}" onclick="orientDayToggle('${key}')" style="position:relative;width:38px;height:22px;flex-shrink:0;cursor:pointer">
+        <input type="checkbox" id="odt-${key}" ${on?'checked':''} style="opacity:0;width:0;height:0;position:absolute">
+        <div id="odt-track-${key}" style="position:absolute;inset:0;border-radius:20px;background:${on?'var(--navy)':'#cbd5e1'};transition:.2s"></div>
+        <div id="odt-knob-${key}" style="position:absolute;top:3px;left:${on?'19px':'3px'};width:16px;height:16px;background:#fff;border-radius:50%;transition:.2s;box-shadow:0 1px 3px rgba(0,0,0,.2)"></div>
+      </div>
+      <span style="font-size:.82rem;font-weight:600;width:5.5rem;color:${on?'var(--navy)':'#94a3b8'}" id="odt-lbl-${key}">${label}</span>
+      <select id="ods-${key}-start" onchange="updateOrientGenPreview()"
+        style="padding:.25rem .45rem;border:1.5px solid var(--border);border-radius:6px;font-size:.76rem;font-family:inherit;${on?'':'opacity:.35;pointer-events:none'}">
+        ${buildTimeOptions(dc.start)}
+      </select>
+      <span style="font-size:.75rem;color:var(--gray)">–</span>
+      <select id="ods-${key}-end" onchange="updateOrientGenPreview()"
+        style="padding:.25rem .45rem;border:1.5px solid var(--border);border-radius:6px;font-size:.76rem;font-family:inherit;${on?'':'opacity:.35;pointer-events:none'}">
+        ${buildTimeOptions(dc.end)}
+      </select>
+    </div>`;
+  }).join('');
+
+  // Populate defaults
+  const durationEl   = document.getElementById('orient-cfg-duration');
+  const capacityEl   = document.getElementById('orient-cfg-capacity');
+  const facilitatorEl= document.getElementById('orient-cfg-facilitator');
+  const addressEl    = document.getElementById('orient-cfg-address');
+  if(durationEl)    durationEl.value    = String(cfg.duration||2);
+  if(capacityEl)    capacityEl.value    = String(cfg.capacity||6);
+  if(facilitatorEl) facilitatorEl.value = cfg.facilitator||'';
+  if(addressEl)     addressEl.value     = cfg.address||'1331 N Stewart Ave Ste B, Springfield MO 65802';
+  const locRadio = document.querySelector(`input[name="orient-cfg-loc"][value="${cfg.location||'inperson'}"]`);
+  if(locRadio) locRadio.checked = true;
+
+  updateOrientGenPreview();
+}
+
+function orientDayToggle(key){
+  const cb    = document.getElementById('odt-'+key);
+  const track = document.getElementById('odt-track-'+key);
+  const knob  = document.getElementById('odt-knob-'+key);
+  const lbl   = document.getElementById('odt-lbl-'+key);
+  const startS= document.getElementById('ods-'+key+'-start');
+  const endS  = document.getElementById('ods-'+key+'-end');
+  cb.checked  = !cb.checked;
+  const on    = cb.checked;
+  if(track) track.style.background = on ? 'var(--navy)' : '#cbd5e1';
+  if(knob)  knob.style.left        = on ? '19px' : '3px';
+  if(lbl)   lbl.style.color        = on ? 'var(--navy)' : '#94a3b8';
+  if(startS){ startS.style.opacity=on?'1':'.35'; startS.style.pointerEvents=on?'auto':'none'; }
+  if(endS){   endS.style.opacity  =on?'1':'.35'; endS.style.pointerEvents  =on?'auto':'none'; }
+  updateOrientGenPreview();
+}
+
+function updateOrientGenPreview(){
+  const el = document.getElementById('orient-gen-preview');
+  if(!el) return;
+  const DAYS = ['mon','tue','wed','thu','fri','sat','sun'];
+  const weeksEl = document.getElementById('orient-gen-weeks');
+  const weeks   = weeksEl ? parseInt(weeksEl.value) : 8;
+  const enabled = DAYS.filter(d => { const cb=document.getElementById('odt-'+d); return cb && cb.checked; });
+  if(!enabled.length){ el.textContent='No days selected — enable at least one day above.'; return; }
+  const count = enabled.length * weeks;
+  const summary = enabled.map(d=>{
+    const start=document.getElementById('ods-'+d+'-start')?.value||'12:00';
+    const end  =document.getElementById('ods-'+d+'-end')?.value  ||'14:00';
+    return d.charAt(0).toUpperCase()+d.slice(1)+' '+fmtTime(start)+'–'+fmtTime(end);
+  }).join(', ');
+  el.textContent = `Will create ${count} session${count!==1?'s':''} (${summary}) over the next ${weeks} weeks, skipping any that already exist.`;
+}
+
+function saveOrientSettings(){
+  const DAYS=['mon','tue','wed','thu','fri','sat','sun'];
+  const schedule = {};
+  DAYS.forEach(d=>{
+    const cb=document.getElementById('odt-'+d);
+    schedule[d]={
+      enabled: cb?cb.checked:false,
+      start: document.getElementById('ods-'+d+'-start')?.value||'09:00',
+      end:   document.getElementById('ods-'+d+'-end')  ?.value||'17:00'
+    };
+  });
+  const locRadio = document.querySelector('input[name="orient-cfg-loc"]:checked');
+  appSettings.orient_config = {
+    schedule,
+    duration:    parseFloat(document.getElementById('orient-cfg-duration')?.value||'2'),
+    capacity:    parseInt  (document.getElementById('orient-cfg-capacity')?.value||'6'),
+    facilitator: document.getElementById('orient-cfg-facilitator')?.value.trim()||'',
+    location:    locRadio?locRadio.value:'inperson',
+    address:     document.getElementById('orient-cfg-address')?.value.trim()||'1331 N Stewart Ave Ste B, Springfield MO 65802'
+  };
+  localStorage.setItem('cc_settings', JSON.stringify(appSettings));
+  syncToSupabase('settings', appSettings);
+  const btn = document.getElementById('orient-cfg-save-btn');
+  if(btn){ const orig=btn.textContent; btn.textContent='✓ Saved'; btn.style.background='#22c55e'; setTimeout(()=>{btn.textContent=orig;btn.style.background='var(--teal)';},2000); }
+}
+
+function generateOrientSessions(){
+  const DAYS=['sun','mon','tue','wed','thu','fri','sat']; // JS getDay() order
+  const DAY_IDX={sun:0,mon:1,tue:2,wed:3,thu:4,fri:5,sat:6};
+  const weeksEl = document.getElementById('orient-gen-weeks');
+  const weeks   = weeksEl ? parseInt(weeksEl.value) : 8;
+  const cfg     = getOrientConfig();
+
+  // Read current schedule state from UI
+  const enabledDays = ['mon','tue','wed','thu','fri','sat','sun']
+    .filter(d=>{ const cb=document.getElementById('odt-'+d); return cb&&cb.checked; })
+    .map(d=>({
+      dayIndex: DAY_IDX[d],
+      start:    document.getElementById('ods-'+d+'-start')?.value||'09:00'
+    }));
+
+  if(!enabledDays.length){ alert('No days selected. Enable at least one day in the schedule above.'); return; }
+
+  const capacity    = parseInt (document.getElementById('orient-cfg-capacity')  ?.value||'6');
+  const facilitator = (document.getElementById('orient-cfg-facilitator')?.value||'').trim();
+  const locRadio    = document.querySelector('input[name="orient-cfg-loc"]:checked');
+  const isRemote    = locRadio?.value==='remote';
+
+  // Build set of existing session date+time keys to avoid duplicates
+  const existing = new Set(orientSessions.map(s=>s.date+'_'+(s.time||'')));
+
+  const now = new Date(); now.setHours(0,0,0,0);
+  const end = new Date(now); end.setDate(end.getDate()+weeks*7);
+  let created=0;
+
+  const cur = new Date(now);
+  while(cur<=end){
+    const dow = cur.getDay();
+    const match = enabledDays.find(d=>d.dayIndex===dow);
+    if(match){
+      const dateStr = cur.toISOString().split('T')[0];
+      const key = dateStr+'_'+match.start;
+      if(!existing.has(key)){
+        orientSessions.push({
+          id: orientId++, date: dateStr, time: match.start,
+          capacity: String(capacity), is_remote: isRemote?'yes':'no',
+          video_link:'', facilitator, facilitator_role:'Staffing Coordinator',
+          notes:'', bookings:[], series_id:'auto-gen-'+Date.now()
+        });
+        existing.add(key);
+        created++;
+      }
+    }
+    cur.setDate(cur.getDate()+1);
+  }
+
+  if(created===0){
+    alert('All sessions for this schedule already exist — no new sessions were created.');
+  } else {
+    saveOrientStore();
+    renderOrientations();
+    // Flash feedback on the button
+    const btn = document.querySelector('[onclick="generateOrientSessions()"]');
+    if(btn){ const orig=btn.textContent; btn.textContent=`✓ Created ${created} sessions`; btn.style.background='#22c55e'; setTimeout(()=>{btn.textContent=orig;btn.style.background='var(--navy)';},3000); }
+    // Collapse the settings panel
+    const body=document.getElementById('guide-body-orient-cfg');
+    const arrow=document.getElementById('guide-arrow-orient-cfg');
+    if(body&&body.classList.contains('open')){ body.classList.remove('open'); if(arrow)arrow.classList.remove('open'); }
+  }
+}
+
+function renderOrientReadyQueue(){
+  const el = document.getElementById('orient-ready-queue');
+  if(!el) return;
+  const ready = (typeof candidates!=='undefined'?candidates:[]).filter(c=>obDeriveStatus(c)==='Ready for Orientation');
+  if(!ready.length){ el.innerHTML=''; return; }
+  const now = new Date();
+  el.innerHTML = `
+    <div style="background:linear-gradient(135deg,#f0fffe,#e8f4fd);border:1.5px solid var(--teal);border-radius:12px;padding:.85rem 1rem">
+      <div style="display:flex;align-items:center;gap:.5rem;margin-bottom:.7rem;flex-wrap:wrap">
+        <span style="font-size:.95rem">✅</span>
+        <span style="font-size:.88rem;font-weight:700;color:var(--navy)">Ready for Orientation</span>
+        <span style="background:var(--teal);color:#fff;font-size:.68rem;font-weight:700;border-radius:12px;padding:.1rem .5rem">${ready.length}</span>
+        <span style="font-size:.75rem;color:var(--gray)">${ready.length===1?'candidate is':'candidates are'} cleared and waiting to be invited</span>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:.5rem">
+        ${ready.map(c=>{
+          const resolvedAt = c.resolvedAt ? new Date(c.resolvedAt) : null;
+          const days = resolvedAt ? Math.floor((now-resolvedAt)/(1000*60*60*24)) : null;
+          const wait = days===null?'':days===0?'Cleared today':days===1?'1 day waiting':`${days} days waiting`;
+          const invited = c.invite_sent;
+          return `<div style="display:flex;align-items:center;gap:.55rem;background:#fff;border:1.5px solid ${invited?'#86efac':'var(--teal)'};border-radius:9px;padding:.4rem .8rem">
+            <span style="font-size:.84rem;font-weight:600;color:var(--navy)">${c.first} ${c.last}</span>
+            ${wait?`<span style="font-size:.7rem;color:var(--gray)">${wait}</span>`:''}
+            ${invited?`<span style="font-size:.68rem;color:#16a34a;font-weight:600">📩 Invited</span>`:''}
+            <button onclick="openInviteModal(${c.id})" style="padding:.22rem .65rem;background:${invited?'#f0fdf4':'var(--teal)'};color:${invited?'#16a34a':'#fff'};border:1.5px solid ${invited?'#86efac':'var(--teal)'};border-radius:6px;font-size:.72rem;font-weight:600;cursor:pointer;font-family:inherit">${invited?'📅 Re-send':'📅 Invite'}</button>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
 function renderOrientations(){
+  renderOrientReadyQueue();
   renderCalendar();
   renderSessionsList();
   // Stats
@@ -3669,15 +3993,17 @@ function _doOpenOrientModal(id){
     document.getElementById('or-notes-field').value=s.notes||'';
     document.getElementById('or-link-grp').style.display=s.is_remote==='yes'?'block':'none';
   } else {
+    // Pre-populate from orient_config defaults
+    const oc = getOrientConfig();
     document.getElementById('or-date').value='';
     document.getElementById('or-time').value='10:00';
-    document.getElementById('or-cap').value='6';
-    document.getElementById('or-remote').value='no';
+    document.getElementById('or-cap').value=String(oc.capacity||6);
+    document.getElementById('or-remote').value=oc.location==='remote'?'yes':'no';
     document.getElementById('or-video-link').value='';
-    document.getElementById('or-facilitator').value='';
-    document.getElementById('or-facilitator-role').value='';
+    document.getElementById('or-facilitator').value=oc.facilitator||'';
+    document.getElementById('or-facilitator-role').value=oc.facilitator?'Staffing Coordinator':'';
     document.getElementById('or-notes-field').value='';
-    document.getElementById('or-link-grp').style.display='none';
+    document.getElementById('or-link-grp').style.display=oc.location==='remote'?'block':'none';
   }
   document.getElementById('orient-modal').classList.add('open');
 }
