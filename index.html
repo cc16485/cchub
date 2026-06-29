@@ -2205,13 +2205,30 @@ function renderClientQueue(){
 }
 
 function renderClientCard(c){
-  const isComplete = c.status === 'complete';
-  const allChecked = c.caregiver_assigned && c.caregiver_called && c.client_called;
-  const progress = [c.caregiver_assigned, c.caregiver_called, c.client_called].filter(Boolean).length;
+  const allChecked = c.caregiver_assigned && c.caregiver_called && c.client_called && c.schedule_added;
+  const notesOk = (c.caregiver_call_notes||'').trim() && (c.client_call_notes||'').trim();
+  const canComplete = allChecked && notesOk;
+  const progress = [c.caregiver_assigned, c.caregiver_called, c.client_called, c.schedule_added].filter(Boolean).length;
   const dateLabel = c.start_date ? new Date(c.start_date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : 'TBD';
   const addedLabel = new Date(c.added_at).toLocaleDateString('en-US',{month:'short',day:'numeric'});
 
-  return `<div style="background:#fff;border:2px solid ${allChecked?'#fde68a':'#f59e0b'};border-radius:12px;padding:1rem 1.1rem;margin-bottom:.75rem">
+  const fmtTs = ts => ts ? new Date(ts).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric',hour:'numeric',minute:'2-digit'}) : '';
+
+  const cgNotesHtml = c.caregiver_called ? `
+    <div style="margin-top:.45rem" onclick="event.stopPropagation()">
+      ${c.caregiver_called_at ? `<div style="font-size:.67rem;color:#6b7280;margin-bottom:.25rem">✓ Completed ${fmtTs(c.caregiver_called_at)}</div>` : ''}
+      <textarea rows="2" placeholder="Required — notes from caregiver call (confirmed schedule, any concerns…)" onblur="saveCallNotes('${c.id}','caregiver_call_notes',this.value)" style="width:100%;padding:.35rem .55rem;border:1.5px solid ${(c.caregiver_call_notes||'').trim()?'#86efac':'#fca5a5'};border-radius:6px;font-family:inherit;font-size:.74rem;resize:vertical;box-sizing:border-box;background:#fff">${c.caregiver_call_notes||''}</textarea>
+      ${!(c.caregiver_call_notes||'').trim() ? `<div style="font-size:.68rem;color:#dc2626;margin-top:.15rem">⚠ Notes required</div>` : ''}
+    </div>` : '';
+
+  const clientNotesHtml = c.client_called ? `
+    <div style="margin-top:.45rem" onclick="event.stopPropagation()">
+      ${c.client_called_at ? `<div style="font-size:.67rem;color:#6b7280;margin-bottom:.25rem">✓ Completed ${fmtTs(c.client_called_at)}</div>` : ''}
+      <textarea rows="2" placeholder="Required — notes from client call (schedule confirmed, client reaction, anything to flag…)" onblur="saveCallNotes('${c.id}','client_call_notes',this.value)" style="width:100%;padding:.35rem .55rem;border:1.5px solid ${(c.client_call_notes||'').trim()?'#86efac':'#fca5a5'};border-radius:6px;font-family:inherit;font-size:.74rem;resize:vertical;box-sizing:border-box;background:#fff">${c.client_call_notes||''}</textarea>
+      ${!(c.client_call_notes||'').trim() ? `<div style="font-size:.68rem;color:#dc2626;margin-top:.15rem">⚠ Notes required</div>` : ''}
+    </div>` : '';
+
+  return `<div style="background:#fff;border:2px solid ${canComplete?'#fde68a':allChecked&&!notesOk?'#fca5a5':'#f59e0b'};border-radius:12px;padding:1rem 1.1rem;margin-bottom:.75rem">
 
     <!-- Header -->
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.65rem;gap:.5rem">
@@ -2227,7 +2244,7 @@ function renderClientCard(c){
         ${c.axiscare_client_id?`<div style="font-size:.68rem;color:var(--gray);margin-top:.2rem">AxisCare ID: ${c.axiscare_client_id}</div>`:''}
       </div>
       <div style="display:flex;align-items:center;gap:.4rem;flex-shrink:0">
-        <span style="font-size:.78rem;font-weight:700;color:#92400e;background:#fff7ed;border-radius:6px;padding:.2rem .5rem">${progress}/3 steps</span>
+        <span style="font-size:.78rem;font-weight:700;color:#92400e;background:#fff7ed;border-radius:6px;padding:.2rem .5rem">${progress}/4 steps</span>
         <button onclick="deleteClientQueueItem('${c.id}')" style="background:none;border:none;cursor:pointer;font-size:.85rem;color:#ccc;padding:.1rem .3rem" title="Remove">✕</button>
       </div>
     </div>
@@ -2235,6 +2252,7 @@ function renderClientCard(c){
     <!-- Checklist -->
     <div style="display:flex;flex-direction:column;gap:.5rem">
 
+      <!-- Step 1: Assign caregiver -->
       <label style="display:flex;align-items:flex-start;gap:.65rem;cursor:pointer;padding:.5rem .7rem;border-radius:8px;border:1.5px solid ${c.caregiver_assigned?'#86efac':'var(--border)'};background:${c.caregiver_assigned?'#f0fdf4':'#fafafa'}">
         <input type="checkbox" ${c.caregiver_assigned?'checked':''} onchange="updateCQStep('${c.id}','caregiver_assigned',this.checked)" style="margin-top:.15rem;accent-color:#22c55e;width:1rem;height:1rem;flex-shrink:0">
         <div style="flex:1">
@@ -2242,28 +2260,51 @@ function renderClientCard(c){
           <div style="font-size:.72rem;color:var(--gray);margin-top:.1rem">Match and assign a caregiver to this client's shifts in AxisCare.</div>
           ${c.caregiver_assigned && !c.caregiver_assigned_name ? `<input type="text" placeholder="Enter caregiver name…" onblur="saveCaregiverName('${c.id}',this.value)" onclick="event.stopPropagation()" style="margin-top:.3rem;width:100%;padding:.3rem .55rem;border:1.5px solid #86efac;border-radius:6px;font-family:inherit;font-size:.75rem;background:#fff;box-sizing:border-box">` : ''}
           ${c.caregiver_assigned_name ? `<div style="font-size:.73rem;font-weight:600;color:#166534;margin-top:.2rem">👤 ${c.caregiver_assigned_name}</div>` : ''}
+          ${c.caregiver_assigned && c.caregiver_assigned_at ? `<div style="font-size:.67rem;color:#6b7280;margin-top:.15rem">✓ ${fmtTs(c.caregiver_assigned_at)}</div>` : ''}
         </div>
       </label>
 
-      <label style="display:flex;align-items:flex-start;gap:.65rem;${!c.caregiver_assigned?'opacity:.4;cursor:not-allowed':'cursor:pointer'};padding:.5rem .7rem;border-radius:8px;border:1.5px solid ${c.caregiver_called?'#86efac':'var(--border)'};background:${c.caregiver_called?'#f0fdf4':'#fafafa'}">
-        <input type="checkbox" ${c.caregiver_called?'checked':''} ${!c.caregiver_assigned?'disabled':''} onchange="updateCQStep('${c.id}','caregiver_called',this.checked)" style="margin-top:.15rem;accent-color:#22c55e;width:1rem;height:1rem;flex-shrink:0">
-        <div>
-          <div style="font-size:.8rem;font-weight:600;color:var(--navy)${c.caregiver_called?';text-decoration:line-through;opacity:.55':''}">Called &amp; briefed ${c.caregiver_assigned_name||'assigned caregiver'}</div>
-          <div style="font-size:.72rem;color:var(--gray);margin-top:.1rem">Call via CareQB. Introduce the client, review care plan and schedule, confirm start date. Document in CareQB.</div>
-        </div>
-      </label>
+      <!-- Step 2: Call caregiver + notes -->
+      <div style="padding:.5rem .7rem;border-radius:8px;border:1.5px solid ${c.caregiver_called?'#86efac':'var(--border)'};background:${c.caregiver_called?'#f0fdf4':'#fafafa'}${!c.caregiver_assigned?';opacity:.4':''}">
+        <label style="display:flex;align-items:flex-start;gap:.65rem;${!c.caregiver_assigned?'cursor:not-allowed':'cursor:pointer'}">
+          <input type="checkbox" ${c.caregiver_called?'checked':''} ${!c.caregiver_assigned?'disabled':''} onchange="updateCQStep('${c.id}','caregiver_called',this.checked)" style="margin-top:.15rem;accent-color:#22c55e;width:1rem;height:1rem;flex-shrink:0">
+          <div>
+            <div style="font-size:.8rem;font-weight:600;color:var(--navy)${c.caregiver_called?';text-decoration:line-through;opacity:.55':''}">Called &amp; briefed ${c.caregiver_assigned_name||'assigned caregiver'}</div>
+            <div style="font-size:.72rem;color:var(--gray);margin-top:.1rem">Introduce the client, review care plan and schedule, confirm start date.</div>
+          </div>
+        </label>
+        ${cgNotesHtml}
+      </div>
 
-      <label style="display:flex;align-items:flex-start;gap:.65rem;${!c.caregiver_assigned?'opacity:.4;cursor:not-allowed':'cursor:pointer'};padding:.5rem .7rem;border-radius:8px;border:1.5px solid ${c.client_called?'#86efac':'var(--border)'};background:${c.client_called?'#f0fdf4':'#fafafa'}">
-        <input type="checkbox" ${c.client_called?'checked':''} ${!c.caregiver_assigned?'disabled':''} onchange="updateCQStep('${c.id}','client_called',this.checked)" style="margin-top:.15rem;accent-color:#22c55e;width:1rem;height:1rem;flex-shrink:0">
+      <!-- Step 3: Call client + notes -->
+      <div style="padding:.5rem .7rem;border-radius:8px;border:1.5px solid ${c.client_called?'#86efac':'var(--border)'};background:${c.client_called?'#f0fdf4':'#fafafa'}${!c.caregiver_assigned?';opacity:.4':''}">
+        <label style="display:flex;align-items:flex-start;gap:.65rem;${!c.caregiver_assigned?'cursor:not-allowed':'cursor:pointer'}">
+          <input type="checkbox" ${c.client_called?'checked':''} ${!c.caregiver_assigned?'disabled':''} onchange="updateCQStep('${c.id}','client_called',this.checked)" style="margin-top:.15rem;accent-color:#22c55e;width:1rem;height:1rem;flex-shrink:0">
+          <div>
+            <div style="font-size:.8rem;font-weight:600;color:var(--navy)${c.client_called?';text-decoration:line-through;opacity:.55':''}">Called ${c.client_name} &amp; confirmed schedule</div>
+            <div style="font-size:.72rem;color:var(--gray);margin-top:.1rem">Share caregiver's name, confirm start date and days/times of care.</div>
+          </div>
+        </label>
+        ${clientNotesHtml}
+      </div>
+
+      <!-- Step 4: Added schedule into AxisCare -->
+      <label style="display:flex;align-items:flex-start;gap:.65rem;${!c.client_called?'opacity:.4;cursor:not-allowed':'cursor:pointer'};padding:.5rem .7rem;border-radius:8px;border:1.5px solid ${c.schedule_added?'#86efac':'var(--border)'};background:${c.schedule_added?'#f0fdf4':'#fafafa'}">
+        <input type="checkbox" ${c.schedule_added?'checked':''} ${!c.client_called?'disabled':''} onchange="updateCQStep('${c.id}','schedule_added',this.checked)" style="margin-top:.15rem;accent-color:#22c55e;width:1rem;height:1rem;flex-shrink:0">
         <div>
-          <div style="font-size:.8rem;font-weight:600;color:var(--navy)${c.client_called?';text-decoration:line-through;opacity:.55':''}">Called ${c.client_name} &amp; confirmed schedule</div>
-          <div style="font-size:.72rem;color:var(--gray);margin-top:.1rem">Introduce yourself as Scheduling Coordinator. Share caregiver's name, confirm start date and days/times of care.</div>
+          <div style="font-size:.8rem;font-weight:600;color:var(--navy)${c.schedule_added?';text-decoration:line-through;opacity:.55':''}">Added schedule into AxisCare</div>
+          <div style="font-size:.72rem;color:var(--gray);margin-top:.1rem">Enter the confirmed shift schedule in AxisCare so it appears on the caregiver's calendar.</div>
+          ${c.schedule_added && c.schedule_added_at ? `<div style="font-size:.67rem;color:#6b7280;margin-top:.15rem">✓ ${fmtTs(c.schedule_added_at)}</div>` : ''}
         </div>
       </label>
 
     </div>
 
-    ${allChecked ? `<div style="margin-top:.65rem">
+    ${allChecked && !notesOk ? `<div style="margin-top:.65rem;background:#fef2f2;border:1.5px solid #fca5a5;border-radius:8px;padding:.5rem .75rem;font-size:.78rem;color:#dc2626">
+      ⚠ Please add call notes for steps 2 and 3 before marking complete.
+    </div>` : ''}
+
+    ${canComplete ? `<div style="margin-top:.65rem">
       <button onclick="completeClientQueueItem('${c.id}')" style="padding:.4rem 1rem;background:#22c55e;color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:.8rem;font-weight:700;cursor:pointer">✅ Mark Scheduling Complete</button>
     </div>` : ''}
 
@@ -2271,11 +2312,18 @@ function renderClientCard(c){
 }
 
 async function updateCQStep(id, field, value){
-  // Optimistic update
+  const item = (window._clientQueue||[]).find(c=>c.id===id);
+  const tsField = field + '_at';
+  const tsValue = value ? new Date().toISOString() : null;
+  if(item){ item[field] = value; item[tsField] = tsValue; }
+  renderClientQueue();
+  await sb.from('client_queue').update({ [field]: value, [tsField]: tsValue }).eq('id', id);
+}
+
+async function saveCallNotes(id, field, value){
   const item = (window._clientQueue||[]).find(c=>c.id===id);
   if(item) item[field] = value;
   renderClientQueue();
-  // Show caregiver name input if just checked
   await sb.from('client_queue').update({ [field]: value }).eq('id', id);
 }
 
@@ -2289,11 +2337,31 @@ async function saveCaregiverName(id, name){
 
 async function completeClientQueueItem(id){
   const { data:{ user } } = await sb.auth.getUser();
+  const { data:{ session } } = await sb.auth.getSession();
   const now = new Date().toISOString();
   const item = (window._clientQueue||[]).find(c=>c.id===id);
   if(item){ item.status='complete'; item.completed_at=now; item.completed_by=user?.email||''; }
   renderClientQueue();
   await sb.from('client_queue').update({ status:'complete', completed_at:now, completed_by:user?.email||'' }).eq('id', id);
+
+  // Push scheduling summary note to AxisCare client profile
+  if(item?.axiscare_client_id && session?.access_token){
+    try {
+      const res = await fetch('https://zngsgedlsxinbygwmxwn.supabase.co/functions/v1/axiscare-push-note', {
+        method: 'POST',
+        headers: { 'Authorization': `Bearer ${session.access_token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ client_queue_id: id })
+      });
+      const data = await res.json();
+      if(data.success){
+        console.log('✅ Scheduling note pushed to AxisCare, note ID:', data.note_id);
+      } else {
+        console.warn('AxisCare note push failed:', data.error);
+      }
+    } catch(e){
+      console.warn('AxisCare note push error:', e);
+    }
+  }
 }
 
 async function deleteClientQueueItem(id){
@@ -2321,6 +2389,9 @@ async function addClientToQueue(data){
     caregiver_assigned: false,
     caregiver_called: false,
     client_called: false,
+    schedule_added: false,
+    caregiver_call_notes: '',
+    client_call_notes: '',
     status: 'pending',
   };
   const { data: inserted, error } = await sb.from('client_queue').insert([payload]).select();
