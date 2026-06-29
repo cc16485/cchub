@@ -216,9 +216,13 @@ td{padding:.7rem .9rem;font-size:.83rem;vertical-align:middle}
     <img src="https://images.leadconnectorhq.com/image/f_webp/q_80/r_1200/u_https://assets.cdn.filesafe.space/Recp0AhyMh8lrtKJ9kaj/media/691b9707bb3d037e0ad689bf.png" alt="Caring Companions">
     <h2>Compliance Hub</h2>
     <p>HR admin access only</p>
-    <input type="password" id="pwd" placeholder="Password">
-    <button class="btn-login" onclick="doLogin()">Sign In</button>
-    <div class="err" id="err">Incorrect password.</div>
+    <input type="email" id="login-email" placeholder="Email address" autocomplete="email" style="margin-bottom:.75rem">
+    <input type="password" id="pwd" placeholder="Password" autocomplete="current-password">
+    <button class="btn-login" id="login-btn" onclick="doLogin()">Sign In</button>
+    <div class="err" id="err"></div>
+    <div style="margin-top:.75rem">
+      <a href="#" onclick="doForgotPassword()" style="font-size:.8rem;color:var(--teal);text-decoration:none">Forgot password?</a>
+    </div>
   </div>
 </div>
 
@@ -236,7 +240,7 @@ td{padding:.7rem .9rem;font-size:.83rem;vertical-align:middle}
       </div>
       <span id="sync-status" style="font-size:.72rem;font-weight:600;color:#94a3b8;white-space:nowrap">☁ Synced</span>
       <button class="logout-btn" onclick="openSettings()">⚙️ Settings</button>
-      <button class="logout-btn" onclick="openChangePwd()">🔑 Change Password</button>
+      <button class="logout-btn" onclick="doForgotPassword()">🔑 Reset Password</button>
       <button class="logout-btn" onclick="doLogout()">Sign Out</button>
     </div>
   </header>
@@ -1228,22 +1232,19 @@ td{padding:.7rem .9rem;font-size:.83rem;vertical-align:middle}
 </div>
 
 <script>
-// ── Auth — password stored in localStorage (not plaintext in source) ──
-// Default password on first load: CC2026Hub!
-// Change it anytime via the header "Change Password" button.
-const DEFAULT_PWD_B64 = btoa('CC2026Hub!');
-function getStoredPwd(){ return localStorage.getItem('cc_pwd') || DEFAULT_PWD_B64; }
-function checkPwd(val){ return btoa(val) === getStoredPwd(); }
+// ── SUPABASE CLIENT (must be first) ───────────────────────────────────
+const SB_URL  = 'https://zngsgedlsxinbygwmxwn.supabase.co';
+const SB_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpuZ3NnZWRsc3hpbmJ5Z3dteHduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1NDIzNDQsImV4cCI6MjA5ODExODM0NH0.L_31_UKdccyRH9n7p1GaBlZTqcJipB008H-GIvxwLxM';
+const sb = supabase.createClient(SB_URL, SB_KEY);
 
 // ── Admin passcode — gates Settings access ────────────────────────────
-// Default admin passcode on first load: same as login password.
-// Change it in Settings → Admin Passcode.
-function getAdminPwd(){ return localStorage.getItem('cc_admin_pwd') || getStoredPwd(); }
-function checkAdminPwd(val){ return btoa(val) === getAdminPwd(); }
+// Stored in localStorage; set on first use via Settings.
+function getAdminPwd(){ return localStorage.getItem('cc_admin_pwd') || ''; }
+function checkAdminPwd(val){ return val !== '' && btoa(val) === getAdminPwd(); }
 
 const TODAY = new Date(); TODAY.setHours(0,0,0,0);
 
-// ── Auth ──────────────────────────────────────────────────────────────
+// ── Supabase Auth ─────────────────────────────────────────────────────
 async function showApp(){
   document.getElementById('login-screen').style.display='none';
   document.getElementById('app').style.display='block';
@@ -1251,21 +1252,55 @@ async function showApp(){
   await loadFromSupabase();
   renderAll();
 }
+
 async function doLogin(){
-  if(checkPwd(document.getElementById('pwd').value)){
-    localStorage.setItem('cc_session','1');
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('pwd').value;
+  const errEl = document.getElementById('err');
+  const btn = document.getElementById('login-btn');
+  errEl.style.display='none';
+  errEl.textContent='';
+  if(!email || !password){
+    errEl.textContent='Please enter your email and password.';
+    errEl.style.display='block'; return;
+  }
+  btn.disabled=true; btn.textContent='Signing in…';
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  btn.disabled=false; btn.textContent='Sign In';
+  if(error){
+    errEl.textContent = error.message === 'Invalid login credentials'
+      ? 'Incorrect email or password.' : error.message;
+    errEl.style.display='block';
+  } else {
     await showApp();
-  } else { document.getElementById('err').style.display='block'; }
+  }
 }
-document.getElementById('pwd').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
-function doLogout(){
-  localStorage.removeItem('cc_session');
+
+async function doLogout(){
+  await sb.auth.signOut();
   document.getElementById('login-screen').style.display='flex';
   document.getElementById('app').style.display='none';
   document.getElementById('pwd').value='';
+  document.getElementById('login-email').value='';
 }
-// Auto-login if session exists
-if(localStorage.getItem('cc_session')==='1') showApp();
+
+async function doForgotPassword(){
+  const email = document.getElementById('login-email')?.value.trim()
+    || prompt('Enter your email address:');
+  if(!email) return;
+  const { error } = await sb.auth.resetPasswordForEmail(email);
+  if(error){ alert('Error: ' + error.message); }
+  else { alert(`Password reset email sent to ${email}. Check your inbox.`); }
+}
+
+document.getElementById('pwd').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+document.getElementById('login-email').addEventListener('keydown',e=>{if(e.key==='Enter')document.getElementById('pwd').focus();});
+
+// Auto-restore session on page load
+(async ()=>{
+  const { data: { session } } = await sb.auth.getSession();
+  if(session) await showApp();
+})();
 
 // ── OIG Exclusion Check ───────────────────────────────────────────────
 async function runOIGCheck(first, last){
@@ -1636,16 +1671,7 @@ function setupDriveButtons(){
 window.addEventListener('load', () => {
   setTimeout(() => { if(appSettings.google_client_id) gdriveInit(); setupDriveButtons(); }, 500);
 });
-function openChangePwd(){
-  const cur=prompt('Current password:');
-  if(!checkPwd(cur||'')){ alert('Incorrect current password.'); return; }
-  const n1=prompt('New password:');
-  if(!n1||n1.length<6){ alert('Password must be at least 6 characters.'); return; }
-  const n2=prompt('Confirm new password:');
-  if(n1!==n2){ alert('Passwords do not match.'); return; }
-  localStorage.setItem('cc_pwd', btoa(n1));
-  alert('Password updated successfully!');
-}
+// Password changes handled via Supabase — use "Reset Password" in the header.
 
 // ── Tabs ──────────────────────────────────────────────────────────────
 function switchTab(name, btn){
@@ -1686,10 +1712,7 @@ const ZAPIER_CANDIDATE_WEBHOOK = "https://hooks.zapier.com/hooks/catch/REPLACE_W
 // Zap adds a note to their AxisCare profile so care coordinators can see status without hub access
 const ZAPIER_AC_STATUS_WEBHOOK = "https://hooks.zapier.com/hooks/catch/28062149/42aqc9c/";
 
-// ── SUPABASE ───────────────────────────────────────────────────────────
-const SB_URL  = 'https://zngsgedlsxinbygwmxwn.supabase.co';
-const SB_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpuZ3NnZWRsc3hpbmJ5Z3dteHduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1NDIzNDQsImV4cCI6MjA5ODExODM0NH0.L_31_UKdccyRH9n7p1GaBlZTqcJipB008H-GIvxwLxM';
-const sb = supabase.createClient(SB_URL, SB_KEY);
+// ── SUPABASE — client initialized at top of script ────────────────────
 
 async function syncToSupabase(key, data){
   try {
@@ -3695,7 +3718,9 @@ async function loadPendingEVVSubmissions() {
 }
 
 async function acceptEVVSubmission(sub) {
-  // Auto-fill a new correction from the submission
+  const { data: { user } } = await sb.auth.getUser();
+  const adminEmail = user?.email || 'unknown';
+
   const corrections = getEVVCorrections();
   corrections.unshift({
     id: Date.now().toString(),
@@ -3710,15 +3735,20 @@ async function acceptEVVSubmission(sub) {
     reason:       sub.reason || '',
     formReceived: 'yes',
     wellskyDone:  'no',
-    admin:        '',
+    admin:        adminEmail,
     wellskyDate:  '',
     notes:        sub.notes || '',
     loggedAt:     new Date().toISOString()
   });
   saveEVVCorrections(corrections);
 
-  // Mark submission as processed in Supabase
-  await sb.from('evv_submissions').update({ processed: true }).eq('id', sub.id);
+  // Mark processed + log which admin acted
+  await sb.from('evv_submissions').update({
+    processed:    true,
+    processed_by: adminEmail,
+    processed_at: new Date().toISOString()
+  }).eq('id', sub.id);
+
   await loadPendingEVVSubmissions();
   renderEVVCorrections();
   alert(`✅ Logged! "${sub.attendant}" correction is now in the log. Update AxisCare and check the form-received box once done.`);
@@ -3726,7 +3756,13 @@ async function acceptEVVSubmission(sub) {
 
 async function dismissEVVSubmission(id) {
   if (!confirm('Dismiss this submission? It will be removed from the pending list.')) return;
-  await sb.from('evv_submissions').update({ processed: true }).eq('id', id);
+  const { data: { user } } = await sb.auth.getUser();
+  const adminEmail = user?.email || 'unknown';
+  await sb.from('evv_submissions').update({
+    processed:    true,
+    processed_by: adminEmail,
+    processed_at: new Date().toISOString()
+  }).eq('id', id);
   loadPendingEVVSubmissions();
 }
 
