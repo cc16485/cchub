@@ -572,47 +572,19 @@ td{padding:.7rem .9rem;font-size:.83rem;vertical-align:middle}
         </a>
       </div>
 
-      <!-- New Client Alert Widget -->
-      <div style="background:#fff7ed;border:2px solid #f59e0b;border-radius:12px;padding:1rem 1.25rem;margin-bottom:1.25rem">
-        <div style="display:flex;align-items:center;gap:.6rem;margin-bottom:.65rem">
-          <span style="font-size:1.2rem">🏠</span>
-          <div>
-            <div style="font-size:.88rem;font-weight:700;color:#92400e">New Client Needs Scheduling</div>
-            <div style="font-size:.72rem;color:#b45309">Care Coordinators: fill this out after setting up a new client in AxisCare to alert the Staffing Coordinator.</div>
+      <!-- New Client Queue -->
+      <div style="margin-bottom:1.25rem">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:.65rem">
+          <div style="display:flex;align-items:center;gap:.6rem">
+            <span style="font-size:1.1rem">🏠</span>
+            <div>
+              <div style="font-size:.92rem;font-weight:700;color:var(--navy)">New Clients — Needs Scheduling</div>
+              <div style="font-size:.72rem;color:var(--gray)">Populated automatically when a new client is added in AxisCare via Zapier.</div>
+            </div>
           </div>
+          <button onclick="loadClientQueue(true)" style="padding:.32rem .75rem;background:var(--teal);color:#fff;border:none;border-radius:7px;font-size:.75rem;font-weight:600;cursor:pointer;font-family:inherit">↻ Refresh</button>
         </div>
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:.5rem;margin-bottom:.5rem">
-          <div>
-            <label style="font-size:.72rem;font-weight:600;color:#92400e;display:block;margin-bottom:.25rem">Client Name</label>
-            <input type="text" id="nc-client-name" placeholder="First Last" style="width:100%;padding:.42rem .7rem;border:1.5px solid #f59e0b;border-radius:8px;font-family:inherit;font-size:.82rem;background:#fff;box-sizing:border-box">
-          </div>
-          <div>
-            <label style="font-size:.72rem;font-weight:600;color:#92400e;display:block;margin-bottom:.25rem">Requested Start Date</label>
-            <input type="date" id="nc-start-date" style="width:100%;padding:.42rem .7rem;border:1.5px solid #f59e0b;border-radius:8px;font-family:inherit;font-size:.82rem;background:#fff;box-sizing:border-box">
-          </div>
-          <div>
-            <label style="font-size:.72rem;font-weight:600;color:#92400e;display:block;margin-bottom:.25rem">Authorized Hrs/Week</label>
-            <input type="text" id="nc-auth-hours" placeholder="e.g. 20 hrs/week" style="width:100%;padding:.42rem .7rem;border:1.5px solid #f59e0b;border-radius:8px;font-family:inherit;font-size:.82rem;background:#fff;box-sizing:border-box">
-          </div>
-          <div>
-            <label style="font-size:.72rem;font-weight:600;color:#92400e;display:block;margin-bottom:.25rem">Payer</label>
-            <select id="nc-payer" style="width:100%;padding:.42rem .7rem;border:1.5px solid #f59e0b;border-radius:8px;font-family:inherit;font-size:.82rem;background:#fff;box-sizing:border-box">
-              <option value="">— Select —</option>
-              <option>Medicaid</option>
-              <option>VA</option>
-              <option>Long-Term Care Insurance</option>
-              <option>Private Pay</option>
-            </select>
-          </div>
-        </div>
-        <div style="margin-bottom:.6rem">
-          <label style="font-size:.72rem;font-weight:600;color:#92400e;display:block;margin-bottom:.25rem">Notes for Staffing Coordinator (optional)</label>
-          <textarea id="nc-notes" rows="2" placeholder="e.g. Client prefers female caregiver, mornings only, lives in Battlefield area…" style="width:100%;padding:.42rem .7rem;border:1.5px solid #f59e0b;border-radius:8px;font-family:inherit;font-size:.82rem;background:#fff;resize:vertical;box-sizing:border-box"></textarea>
-        </div>
-        <div style="display:flex;align-items:center;gap:.75rem">
-          <button onclick="sendNewClientAlert()" style="padding:.45rem 1.1rem;background:#f59e0b;color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:.83rem;font-weight:700;cursor:pointer">🔔 Notify Staffing Coordinator</button>
-          <span id="nc-alert-status" style="font-size:.78rem;color:#92400e;display:none"></span>
-        </div>
+        <div id="client-queue-list"></div>
       </div>
 
       <!-- Scenario SOPs -->
@@ -1348,12 +1320,15 @@ td{padding:.7rem .9rem;font-size:.83rem;vertical-align:middle}
       <input type="text" id="settings-ac-site" placeholder="e.g. 10856" style="flex:1;padding:.45rem .75rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.83rem">
     </div>
     <div style="background:#fff7ed;border:1.5px solid #f59e0b;border-radius:10px;padding:.85rem 1rem;margin-bottom:.65rem">
-      <div style="font-size:.7rem;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem">🏠 New Client Scheduling Alert Webhook (Zapier → Email)</div>
-      <p style="font-size:.72rem;color:var(--gray);margin:0 0 .5rem">When a Care Coordinator clicks "Notify Staffing Coordinator," the hub posts to this URL. Set up a Zap: <strong>Catch Hook → Email by Zapier</strong> (or Gmail) to forward the details to your Staffing Coordinator.</p>
-      <div style="display:flex;gap:.5rem;align-items:center">
-        <label style="font-size:.78rem;font-weight:500;white-space:nowrap;color:#92400e">Webhook URL:</label>
-        <input type="text" id="settings-nc-webhook" placeholder="https://hooks.zapier.com/hooks/catch/…" style="flex:1;padding:.42rem .7rem;border:1.5px solid #f59e0b;border-radius:8px;font-family:inherit;font-size:.75rem">
+      <div style="font-size:.7rem;font-weight:700;color:#92400e;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem">🏠 New Client Queue — AxisCare → Hub Webhook</div>
+      <p style="font-size:.72rem;color:var(--gray);margin:0 0 .5rem">When a new client is created in AxisCare, Zapier automatically adds them to the Scheduling tab queue. Set up a Zap: <strong>AxisCare: New Client → Webhooks by Zapier: POST</strong> to the URL below.</p>
+      <div style="background:#fef9c3;border-radius:6px;padding:.45rem .65rem;margin-bottom:.5rem;font-size:.7rem;color:#713f12;font-family:monospace;word-break:break-all">
+        POST https://zngsgedlsxinbygwmxwn.supabase.co/rest/v1/client_queue<br>
+        Header: apikey: <em>[your Supabase anon key]</em><br>
+        Header: Content-Type: application/json<br>
+        Body: &#123; "client_name":"...", "start_date":"...", "auth_hours":"...", "payer":"...", "schedule_notes":"...", "axiscare_client_id":"..." &#125;
       </div>
+      <p style="font-size:.7rem;color:var(--gray);margin:0">Zapier maps the AxisCare client fields to the JSON body above. The client will appear instantly in the Scheduling tab for the Staffing Coordinator.</p>
     </div>
     <div style="background:#f0fffe;border:1.5px solid var(--teal);border-radius:10px;padding:.85rem 1rem;margin-bottom:.75rem">
       <div style="font-size:.7rem;font-weight:700;color:var(--teal);text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem">🔗 Orientation Shift Webhook (Zapier → AxisCare)</div>
@@ -1614,6 +1589,7 @@ async function showApp(){
   await loadFromSupabase();
   migrateOldRecipients();
   renderAll();
+  loadClientQueue();
 }
 
 async function doLogin(){
@@ -2147,7 +2123,205 @@ async function gcalDeleteEvent(session){
   } catch(e){ console.warn('gcal delete error', e); }
 }
 
-// ── New Client Scheduling Alert ──────────────────────────────────────
+// ── New Client Queue ─────────────────────────────────────────────────
+let clientQueueShowCompleted = false;
+
+async function loadClientQueue(forceRender=false){
+  try {
+    const { data, error } = await sb.from('client_queue').select('*').order('added_at', { ascending: false });
+    if(error) throw error;
+    window._clientQueue = data || [];
+  } catch(e){
+    window._clientQueue = window._clientQueue || [];
+    console.warn('client_queue load failed', e);
+  }
+  renderClientQueue();
+}
+
+
+function renderClientQueue(){
+  const el = document.getElementById('client-queue-list');
+  if(!el) return;
+  const all = window._clientQueue || [];
+  const pending = all.filter(c => c.status !== 'complete');
+  const completed = all.filter(c => c.status === 'complete');
+
+  let html = '';
+
+  // Pending section
+  if(!pending.length){
+    html += `<div style="background:#f0fdf4;border:1.5px solid #86efac;border-radius:10px;padding:1.25rem;text-align:center;color:#166534;font-size:.82rem;margin-bottom:.75rem">
+      ✅ No pending clients — all scheduled!
+      <div style="font-size:.7rem;margin-top:.3rem;color:var(--gray)">New clients appear here automatically when added in AxisCare via Zapier. <a href="#" onclick="openAddClientManual();return false" style="color:var(--teal)">Or add one manually →</a></div>
+    </div>`;
+  } else {
+    html += pending.map(c => renderClientCard(c)).join('');
+    html += `<div style="font-size:.7rem;color:var(--gray);text-align:right;margin-bottom:.5rem">
+      <a href="#" onclick="openAddClientManual();return false" style="color:var(--teal)">+ Add client manually</a>
+    </div>`;
+  }
+
+  // Completed section — always collapsed, compact
+  if(completed.length){
+    html += `<div style="border:1.5px solid #d1fae5;border-radius:10px;overflow:hidden;margin-top:.5rem">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:.5rem .9rem;background:#f0fdf4;cursor:pointer;user-select:none" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='block'?'none':'block'">
+        <span style="font-size:.77rem;font-weight:700;color:#166534">✅ Completed (${completed.length})</span>
+        <span style="font-size:.72rem;color:#166534">▼</span>
+      </div>
+      <div style="display:none;padding:.65rem .9rem;display:none">
+        ${completed.map(c=>`<div style="display:flex;align-items:center;justify-content:space-between;padding:.4rem 0;border-bottom:1px solid #d1fae5;font-size:.78rem;color:var(--navy)">
+          <div>
+            <span style="font-weight:600">${c.client_name}</span>
+            ${c.caregiver_assigned_name?`<span style="color:var(--gray);margin-left:.5rem">→ ${c.caregiver_assigned_name}</span>`:''}
+            ${c.payer?`<span style="font-size:.68rem;background:#e0f2fe;color:#0369a1;border-radius:4px;padding:.1rem .35rem;margin-left:.35rem">${c.payer}</span>`:''}
+          </div>
+          <div style="display:flex;align-items:center;gap:.5rem">
+            <span style="font-size:.7rem;color:var(--gray)">${c.completed_at?new Date(c.completed_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):''}</span>
+            <button onclick="deleteClientQueueItem('${c.id}')" style="background:none;border:none;cursor:pointer;font-size:.78rem;color:#ccc;padding:.1rem .25rem" title="Remove">✕</button>
+          </div>
+        </div>`).join('')}
+      </div>
+    </div>`;
+  }
+
+  el.innerHTML = html;
+  // Re-attach the completed toggle properly
+  const completedSect = el.querySelector('[style*="d1fae5"]');
+  if(completedSect){
+    const hdr = completedSect.querySelector('div');
+    const body = completedSect.querySelectorAll('div')[1];
+    if(hdr && body) hdr.onclick = ()=>{ body.style.display = body.style.display==='block'?'none':'block'; };
+  }
+}
+
+function renderClientCard(c){
+  const isComplete = c.status === 'complete';
+  const allChecked = c.caregiver_assigned && c.caregiver_called && c.client_called;
+  const progress = [c.caregiver_assigned, c.caregiver_called, c.client_called].filter(Boolean).length;
+  const dateLabel = c.start_date ? new Date(c.start_date+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : 'TBD';
+  const addedLabel = new Date(c.added_at).toLocaleDateString('en-US',{month:'short',day:'numeric'});
+
+  return `<div style="background:#fff;border:2px solid ${allChecked?'#fde68a':'#f59e0b'};border-radius:12px;padding:1rem 1.1rem;margin-bottom:.75rem">
+
+    <!-- Header -->
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:.65rem;gap:.5rem">
+      <div>
+        <div style="font-size:.95rem;font-weight:700;color:var(--navy)">${c.client_name}</div>
+        <div style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.3rem">
+          ${c.payer?`<span style="font-size:.68rem;background:#e0f2fe;color:#0369a1;border-radius:4px;padding:.15rem .45rem;font-weight:600">${c.payer}</span>`:''}
+          ${c.auth_hours?`<span style="font-size:.68rem;background:#f0fdf4;color:#166534;border-radius:4px;padding:.15rem .45rem;font-weight:600">${c.auth_hours}</span>`:''}
+          <span style="font-size:.68rem;background:#f3f4f6;color:var(--gray);border-radius:4px;padding:.15rem .45rem">Start: ${dateLabel}</span>
+          <span style="font-size:.68rem;color:var(--gray)">Added ${addedLabel}</span>
+        </div>
+        ${c.schedule_notes?`<div style="font-size:.74rem;color:#92400e;margin-top:.35rem;background:#fff7ed;border-radius:5px;padding:.25rem .5rem">📋 ${c.schedule_notes}</div>`:''}
+        ${c.axiscare_client_id?`<div style="font-size:.68rem;color:var(--gray);margin-top:.2rem">AxisCare ID: ${c.axiscare_client_id}</div>`:''}
+      </div>
+      <div style="display:flex;align-items:center;gap:.4rem;flex-shrink:0">
+        <span style="font-size:.78rem;font-weight:700;color:#92400e;background:#fff7ed;border-radius:6px;padding:.2rem .5rem">${progress}/3 steps</span>
+        <button onclick="deleteClientQueueItem('${c.id}')" style="background:none;border:none;cursor:pointer;font-size:.85rem;color:#ccc;padding:.1rem .3rem" title="Remove">✕</button>
+      </div>
+    </div>
+
+    <!-- Checklist -->
+    <div style="display:flex;flex-direction:column;gap:.5rem">
+
+      <label style="display:flex;align-items:flex-start;gap:.65rem;cursor:pointer;padding:.5rem .7rem;border-radius:8px;border:1.5px solid ${c.caregiver_assigned?'#86efac':'var(--border)'};background:${c.caregiver_assigned?'#f0fdf4':'#fafafa'}">
+        <input type="checkbox" ${c.caregiver_assigned?'checked':''} onchange="updateCQStep('${c.id}','caregiver_assigned',this.checked)" style="margin-top:.15rem;accent-color:#22c55e;width:1rem;height:1rem;flex-shrink:0">
+        <div style="flex:1">
+          <div style="font-size:.8rem;font-weight:600;color:var(--navy)${c.caregiver_assigned?';text-decoration:line-through;opacity:.55':''}">Caregiver assigned in AxisCare</div>
+          <div style="font-size:.72rem;color:var(--gray);margin-top:.1rem">Match and assign a caregiver to this client's shifts in AxisCare.</div>
+          ${c.caregiver_assigned && !c.caregiver_assigned_name ? `<input type="text" placeholder="Enter caregiver name…" onblur="saveCaregiverName('${c.id}',this.value)" onclick="event.stopPropagation()" style="margin-top:.3rem;width:100%;padding:.3rem .55rem;border:1.5px solid #86efac;border-radius:6px;font-family:inherit;font-size:.75rem;background:#fff;box-sizing:border-box">` : ''}
+          ${c.caregiver_assigned_name ? `<div style="font-size:.73rem;font-weight:600;color:#166534;margin-top:.2rem">👤 ${c.caregiver_assigned_name}</div>` : ''}
+        </div>
+      </label>
+
+      <label style="display:flex;align-items:flex-start;gap:.65rem;${!c.caregiver_assigned?'opacity:.4;cursor:not-allowed':'cursor:pointer'};padding:.5rem .7rem;border-radius:8px;border:1.5px solid ${c.caregiver_called?'#86efac':'var(--border)'};background:${c.caregiver_called?'#f0fdf4':'#fafafa'}">
+        <input type="checkbox" ${c.caregiver_called?'checked':''} ${!c.caregiver_assigned?'disabled':''} onchange="updateCQStep('${c.id}','caregiver_called',this.checked)" style="margin-top:.15rem;accent-color:#22c55e;width:1rem;height:1rem;flex-shrink:0">
+        <div>
+          <div style="font-size:.8rem;font-weight:600;color:var(--navy)${c.caregiver_called?';text-decoration:line-through;opacity:.55':''}">Called &amp; briefed ${c.caregiver_assigned_name||'assigned caregiver'}</div>
+          <div style="font-size:.72rem;color:var(--gray);margin-top:.1rem">Call via CareQB. Introduce the client, review care plan and schedule, confirm start date. Document in CareQB.</div>
+        </div>
+      </label>
+
+      <label style="display:flex;align-items:flex-start;gap:.65rem;${!c.caregiver_assigned?'opacity:.4;cursor:not-allowed':'cursor:pointer'};padding:.5rem .7rem;border-radius:8px;border:1.5px solid ${c.client_called?'#86efac':'var(--border)'};background:${c.client_called?'#f0fdf4':'#fafafa'}">
+        <input type="checkbox" ${c.client_called?'checked':''} ${!c.caregiver_assigned?'disabled':''} onchange="updateCQStep('${c.id}','client_called',this.checked)" style="margin-top:.15rem;accent-color:#22c55e;width:1rem;height:1rem;flex-shrink:0">
+        <div>
+          <div style="font-size:.8rem;font-weight:600;color:var(--navy)${c.client_called?';text-decoration:line-through;opacity:.55':''}">Called ${c.client_name} &amp; confirmed schedule</div>
+          <div style="font-size:.72rem;color:var(--gray);margin-top:.1rem">Introduce yourself as Scheduling Coordinator. Share caregiver's name, confirm start date and days/times of care.</div>
+        </div>
+      </label>
+
+    </div>
+
+    ${allChecked ? `<div style="margin-top:.65rem">
+      <button onclick="completeClientQueueItem('${c.id}')" style="padding:.4rem 1rem;background:#22c55e;color:#fff;border:none;border-radius:8px;font-family:inherit;font-size:.8rem;font-weight:700;cursor:pointer">✅ Mark Scheduling Complete</button>
+    </div>` : ''}
+
+  </div>`;
+}
+
+async function updateCQStep(id, field, value){
+  // Optimistic update
+  const item = (window._clientQueue||[]).find(c=>c.id===id);
+  if(item) item[field] = value;
+  renderClientQueue();
+  // Show caregiver name input if just checked
+  await sb.from('client_queue').update({ [field]: value }).eq('id', id);
+}
+
+async function saveCaregiverName(id, name){
+  if(!name.trim()) return;
+  const item = (window._clientQueue||[]).find(c=>c.id===id);
+  if(item) item.caregiver_assigned_name = name.trim();
+  renderClientQueue();
+  await sb.from('client_queue').update({ caregiver_assigned_name: name.trim() }).eq('id', id);
+}
+
+async function completeClientQueueItem(id){
+  const { data:{ user } } = await sb.auth.getUser();
+  const now = new Date().toISOString();
+  const item = (window._clientQueue||[]).find(c=>c.id===id);
+  if(item){ item.status='complete'; item.completed_at=now; item.completed_by=user?.email||''; }
+  renderClientQueue();
+  await sb.from('client_queue').update({ status:'complete', completed_at:now, completed_by:user?.email||'' }).eq('id', id);
+}
+
+async function deleteClientQueueItem(id){
+  if(!confirm('Remove this client from the queue?')) return;
+  window._clientQueue = (window._clientQueue||[]).filter(c=>c.id!==id);
+  renderClientQueue();
+  await sb.from('client_queue').delete().eq('id', id);
+}
+
+function openAddClientManual(){
+  const name = prompt('Client name:');
+  if(!name) return;
+  addClientToQueue({ client_name: name.trim(), source: 'manual' });
+}
+
+async function addClientToQueue(data){
+  const payload = {
+    client_name: data.client_name || '',
+    client_address: data.client_address || '',
+    start_date: data.start_date || null,
+    auth_hours: data.auth_hours || '',
+    payer: data.payer || '',
+    schedule_notes: data.schedule_notes || data.notes || '',
+    axiscare_client_id: data.axiscare_client_id || data.client_id || '',
+    caregiver_assigned: false,
+    caregiver_called: false,
+    client_called: false,
+    status: 'pending',
+  };
+  const { data: inserted, error } = await sb.from('client_queue').insert([payload]).select();
+  if(!error && inserted){
+    if(!window._clientQueue) window._clientQueue = [];
+    window._clientQueue.unshift(inserted[0]);
+    renderClientQueue();
+  }
+}
+
+// ── New Client Scheduling Alert (legacy — replaced by queue) ──────────
 async function sendNewClientAlert(){
   const name      = document.getElementById('nc-client-name').value.trim();
   const startDate = document.getElementById('nc-start-date').value;
@@ -2876,7 +3050,7 @@ function renderAlerts(){
   `).join('');
 }
 
-function renderAll(){ renderOB(); renderTR(); renderAC(); renderOFF(); renderOrientations(); renderAlerts(); updateAxisCareLaunchBtn(); }
+function renderAll(){ renderOB(); renderTR(); renderAC(); renderOFF(); renderOrientations(); renderAlerts(); updateAxisCareLaunchBtn(); renderClientQueue(); }
 function updateAxisCareLaunchBtn(){
   const btn = document.getElementById('axiscare-launch-btn');
   if(!btn) return;
