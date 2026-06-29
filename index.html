@@ -277,6 +277,7 @@ td{padding:.7rem .9rem;font-size:.83rem;vertical-align:middle}
         <button class="fb" onclick="obFilter('refs',this)">📋 Awaiting References</button>
         <button class="fb" onclick="obFilter('bg',this)">🔍 Pending Background Check</button>
         <button class="fb" onclick="obFilter('review',this)">⚠️ Needs Review</button>
+        <button class="fb" onclick="obFilter('stats',this)" style="margin-left:auto">📊 Processing Stats</button>
         <button class="add-btn" onclick="openOBModal()">+ Add Candidate</button>
       </div>
       <div class="tbl-wrap">
@@ -294,6 +295,7 @@ td{padding:.7rem .9rem;font-size:.83rem;vertical-align:middle}
         </table>
         <div class="empty" id="ob-empty" style="display:none">No candidates match.</div>
       </div>
+      <div id="ob-stats-panel" style="display:none;padding:.25rem 0 1rem"></div>
     </div>
 
     <!-- ═══════════════════════════════ TRAINING ════════════════════════════════ -->
@@ -444,8 +446,8 @@ td{padding:.7rem .9rem;font-size:.83rem;vertical-align:middle}
 
       <!-- Form link bar -->
       <div class="evv-form-link-bar">
-        <div style="font-size:.8rem;font-weight:700;color:var(--navy);white-space:nowrap">📋 Attendant Correction Form</div>
-        <code style="font-size:.82rem;font-weight:600;color:var(--navy);background:#dde9f8;padding:.25rem .65rem;border-radius:6px;flex:1;min-width:160px">mo-care.com/reference-form</code>
+        <div style="font-size:.8rem;font-weight:700;color:var(--navy);white-space:nowrap">📋 EVV Form</div>
+        <code style="font-size:.82rem;font-weight:600;color:var(--navy);background:#dde9f8;padding:.25rem .65rem;border-radius:6px;flex:1;min-width:160px">hub.mo-care.com/evv-correction-form</code>
         <button class="evv-copy-btn" onclick="copyEVVFormLink(this)">📋 Copy Link</button>
         <div style="font-size:.75rem;color:#555">Share this link with the attendant when they need to submit a correction</div>
       </div>
@@ -1432,11 +1434,21 @@ async function batchOIGCheck(){
   const flaggedList = [];
   content.innerHTML = `<div style="font-size:.83rem;color:var(--gray);margin-bottom:.75rem">Checking ${caregivers.length} caregiver${caregivers.length>1?'s':''}…</div>
     <div id="oig-batch-progress" style="font-size:.8rem;color:var(--navy)"></div>`;
+  const errorList = [];
   for(let i=0; i<caregivers.length; i++){
     const cg = caregivers[i];
     document.getElementById('oig-batch-progress').textContent = `${i+1} of ${caregivers.length}: ${cg.first} ${cg.last}…`;
-    try {
-      const result = await runOIGCheck(cg.first, cg.last);
+    let result = null;
+    // Retry up to 3 times with increasing delay
+    for(let attempt=1; attempt<=3; attempt++){
+      try {
+        result = await runOIGCheck(cg.first, cg.last);
+        break;
+      } catch(e){
+        if(attempt < 3){ await new Promise(r=>setTimeout(r, attempt * 1000)); }
+      }
+    }
+    if(result){
       if(result.clear){
         caregivers[i].oig_date = today;
         cleared++;
@@ -1444,8 +1456,11 @@ async function batchOIGCheck(){
         flagged++;
         flaggedList.push({ name:`${cg.first} ${cg.last}`, matches: result.matches });
       }
-    } catch(e){ errors++; }
-    await new Promise(r=>setTimeout(r,300)); // rate limit
+    } else {
+      errors++;
+      errorList.push(`${cg.first} ${cg.last}`);
+    }
+    await new Promise(r=>setTimeout(r,700)); // rate limit — OIG API needs breathing room
   }
   saveCaregivers(); renderAC(); renderAlerts();
   let html = `<div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.5rem;margin-bottom:1rem">
@@ -1469,7 +1484,10 @@ async function batchOIGCheck(){
     });
     html += `<p style="font-size:.75rem;color:var(--gray);margin-top:.5rem">Open each flagged caregiver's record to review and update their OIG status manually.</p>`;
   }
-  if(errors){ html += `<p style="font-size:.75rem;color:var(--amber-text);margin-top:.5rem">⚠ ${errors} caregiver${errors>1?'s':''} could not be checked — try individually.</p>`; }
+  if(errors){ html += `<div style="background:var(--amber-bg);border:1.5px solid #fcd34d;border-radius:8px;padding:.75rem 1rem;margin-top:.5rem;font-size:.78rem;color:var(--amber-text)">
+    <strong>⚠ ${errors} caregiver${errors>1?'s':''} could not be checked after 3 attempts (OIG API may be slow — try them individually):</strong>
+    <div style="margin-top:.4rem">${errorList.join(', ')}</div>
+  </div>`; }
   content.innerHTML = html;
   document.getElementById('oig-batch-close-btn').style.display = 'block';
 }
@@ -1833,7 +1851,130 @@ function trainStatus(c){
 
 // ── ONBOARDING RENDER ─────────────────────────────────────────────────
 let obFilterVal='all', obSearch='';
-function obFilter(f,btn){ obFilterVal=f; document.querySelectorAll('#panel-onboarding .fb').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); renderOB(); }
+function obFilter(f,btn){
+  obFilterVal=f;
+  document.querySelectorAll('#panel-onboarding .fb').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const isStats = f==='stats';
+  document.querySelector('.tbl-wrap').style.display = isStats?'none':'';
+  document.getElementById('ob-stats-panel').style.display = isStats?'block':'none';
+  if(isStats) renderOBStats();
+  else renderOB();
+}
+function renderOBStats(){
+  const el = document.getElementById('ob-stats-panel');
+  const now = new Date();
+
+  function getAddedMs(c){
+    const ts = c.addedAt || (c.added ? c.added+'T00:00:00' : null);
+    return ts ? new Date(ts).getTime() : null;
+  }
+  function msToDays(ms){ return ms/(1000*60*60*24); }
+  function fmtDur(ms){
+    const h=ms/(1000*60*60); if(h<24) return `${Math.round(h)}h`; return `${msToDays(ms).toFixed(1)}d`;
+  }
+  function fmtTs(ts){
+    if(!ts) return '—';
+    const d=new Date(ts);
+    return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})+' '+d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+  }
+
+  // Resolved (Ready for Orientation or Needs Review)
+  const resolved = candidates.filter(c=>c.resolvedAt && getAddedMs(c));
+  const resolvedTimes = resolved.map(c=>new Date(c.resolvedAt).getTime() - getAddedMs(c)).filter(ms=>ms>0);
+  const avgMs = resolvedTimes.length ? resolvedTimes.reduce((a,b)=>a+b,0)/resolvedTimes.length : null;
+  const fastestMs = resolvedTimes.length ? Math.min(...resolvedTimes) : null;
+  const slowestMs = resolvedTimes.length ? Math.max(...resolvedTimes) : null;
+
+  // Active pipeline (Awaiting or Needs Review without resolvedAt)
+  const active = candidates.filter(c=>!c.resolvedAt).map(c=>{
+    const addedMs = getAddedMs(c);
+    const elapsed = addedMs ? now.getTime()-addedMs : null;
+    return {...c, elapsed};
+  }).sort((a,b)=>(b.elapsed||0)-(a.elapsed||0));
+
+  const urgencyColor = d => d===null?'var(--gray)':d>=10?'var(--red)':d>=5?'#F97316':'var(--green-text)';
+
+  el.innerHTML = `
+  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:.75rem;margin-bottom:1.5rem">
+    <div style="background:var(--white);border-radius:10px;padding:1rem;text-align:center;box-shadow:0 2px 8px rgba(14,56,96,.07)">
+      <div style="font-size:1.6rem;font-weight:700;color:var(--navy)">${resolved.length}</div>
+      <div style="font-size:.72rem;color:var(--gray);margin-top:.2rem">Resolved Total</div>
+    </div>
+    <div style="background:var(--white);border-radius:10px;padding:1rem;text-align:center;box-shadow:0 2px 8px rgba(14,56,96,.07)">
+      <div style="font-size:1.6rem;font-weight:700;color:var(--navy)">${avgMs!==null?fmtDur(avgMs):'—'}</div>
+      <div style="font-size:.72rem;color:var(--gray);margin-top:.2rem">Avg Time to Clear</div>
+    </div>
+    <div style="background:var(--white);border-radius:10px;padding:1rem;text-align:center;box-shadow:0 2px 8px rgba(14,56,96,.07)">
+      <div style="font-size:1.6rem;font-weight:700;color:var(--green-text)">${fastestMs!==null?fmtDur(fastestMs):'—'}</div>
+      <div style="font-size:.72rem;color:var(--gray);margin-top:.2rem">Fastest</div>
+    </div>
+    <div style="background:var(--white);border-radius:10px;padding:1rem;text-align:center;box-shadow:0 2px 8px rgba(14,56,96,.07)">
+      <div style="font-size:1.6rem;font-weight:700;color:var(--red)">${slowestMs!==null?fmtDur(slowestMs):'—'}</div>
+      <div style="font-size:.72rem;color:var(--gray);margin-top:.2rem">Slowest</div>
+    </div>
+  </div>
+
+  <!-- Active pipeline -->
+  <div style="background:var(--white);border-radius:10px;box-shadow:0 2px 8px rgba(14,56,96,.07);margin-bottom:1.25rem;overflow:hidden">
+    <div style="padding:.8rem 1rem;background:var(--navy);color:#fff;font-size:.82rem;font-weight:700">⏳ Active Pipeline — sorted by longest waiting (${active.length})</div>
+    ${active.length===0?'<div style="padding:1rem;font-size:.82rem;color:var(--gray)">No active candidates.</div>':''}
+    ${active.length?`<table style="width:100%;border-collapse:collapse;font-size:.8rem">
+      <thead><tr style="background:var(--bg)">
+        <th style="padding:.5rem .75rem;text-align:left;font-weight:600;color:var(--navy)">Candidate</th>
+        <th style="padding:.5rem .75rem;text-align:left;font-weight:600;color:var(--navy)">Added</th>
+        <th style="padding:.5rem .75rem;text-align:left;font-weight:600;color:var(--navy)">Time in Pipeline</th>
+        <th style="padding:.5rem .75rem;text-align:left;font-weight:600;color:var(--navy)">Status</th>
+        <th style="padding:.5rem .75rem;text-align:left;font-weight:600;color:var(--navy)">Blocking</th>
+      </tr></thead>
+      <tbody>${active.map((c,i)=>{
+        const days = c.elapsed!==null ? msToDays(c.elapsed) : null;
+        const st = obDeriveStatus(c);
+        const blocking = [];
+        if(!['CLEAR'].includes(c.oig)) blocking.push('OIG');
+        if(!['Clear'].includes(c.edl)) blocking.push('EDL');
+        if(!['Clear'].includes(c.fcsr)) blocking.push('FCSR');
+        const refs=[c.r1s,c.r2s,c.r3s,c.r4s]; const pos=refs.filter(r=>r==='Positive').length;
+        if(pos<2) blocking.push(`Refs (${pos}/2)`);
+        return `<tr style="border-top:1px solid var(--border);background:${i%2===0?'#fff':'#fafbfc'}">
+          <td style="padding:.5rem .75rem;font-weight:600">${c.first} ${c.last}</td>
+          <td style="padding:.5rem .75rem;color:var(--gray)">${fmtTs(c.addedAt||c.added)}</td>
+          <td style="padding:.5rem .75rem;font-weight:700;color:${urgencyColor(days)}">${days!==null?fmtDur(c.elapsed):'—'}</td>
+          <td style="padding:.5rem .75rem"><span class="badge ${st==='Ready for Orientation'?'b-green':st==='Needs Review'?'b-red':'b-gray'}">${st}</span></td>
+          <td style="padding:.5rem .75rem;color:var(--amber-text);font-size:.75rem">${blocking.join(', ')||'—'}</td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>`:''}
+  </div>
+
+  <!-- Resolved history -->
+  <div style="background:var(--white);border-radius:10px;box-shadow:0 2px 8px rgba(14,56,96,.07);overflow:hidden">
+    <div style="padding:.8rem 1rem;background:var(--teal);color:#fff;font-size:.82rem;font-weight:700">✅ Resolved History (${resolved.length})</div>
+    ${resolved.length===0?'<div style="padding:1rem;font-size:.82rem;color:var(--gray)">No resolved candidates yet — data will populate as candidates are cleared.</div>':''}
+    ${resolved.length?`<table style="width:100%;border-collapse:collapse;font-size:.8rem">
+      <thead><tr style="background:var(--bg)">
+        <th style="padding:.5rem .75rem;text-align:left;font-weight:600;color:var(--navy)">Candidate</th>
+        <th style="padding:.5rem .75rem;text-align:left;font-weight:600;color:var(--navy)">Added</th>
+        <th style="padding:.5rem .75rem;text-align:left;font-weight:600;color:var(--navy)">Resolved</th>
+        <th style="padding:.5rem .75rem;text-align:left;font-weight:600;color:var(--navy)">Total Time</th>
+        <th style="padding:.5rem .75rem;text-align:left;font-weight:600;color:var(--navy)">Outcome</th>
+      </tr></thead>
+      <tbody>${resolved.slice().sort((a,b)=>new Date(b.resolvedAt)-new Date(a.resolvedAt)).map((c,i)=>{
+        const dur = new Date(c.resolvedAt).getTime() - getAddedMs(c);
+        return `<tr style="border-top:1px solid var(--border);background:${i%2===0?'#fff':'#fafbfc'}">
+          <td style="padding:.5rem .75rem;font-weight:600">${c.first} ${c.last}</td>
+          <td style="padding:.5rem .75rem;color:var(--gray)">${fmtTs(c.addedAt||c.added)}</td>
+          <td style="padding:.5rem .75rem;color:var(--gray)">${fmtTs(c.resolvedAt)}</td>
+          <td style="padding:.5rem .75rem;font-weight:700;color:${urgencyColor(msToDays(dur))}">${fmtDur(dur)}</td>
+          <td style="padding:.5rem .75rem"><span class="badge ${c.resolvedStatus==='Ready for Orientation'?'b-green':'b-red'}">${c.resolvedStatus}</span></td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table>`:''}
+  </div>
+  <p style="font-size:.72rem;color:var(--gray);margin-top:.75rem">⚠ Timestamps are only captured for candidates added or updated after this feature was deployed. Historical records show date only.</p>
+  `;
+}
+
 function obDeriveStatus(c){
   const refs=[c.r1s,c.r2s,c.r3s,c.r4s];
   const pos=refs.filter(r=>r==='Positive').length;
@@ -1867,13 +2008,21 @@ function renderOB(){
     const stBadge=st==='Ready for Orientation'?'b-green':st==='Needs Review'?'b-red':'b-gray';
     const fpShow=c.oos==='yes';
     const fpBadge={Clear:'b-green',Required:'b-amber',Submitted:'b-blue','N/A':'b-gray','Issues Found':'b-red'}[c.fp]||'b-gray';
-    const daysPending = c.added ? Math.floor((today-new Date(c.added+'T00:00:00'))/86400000) : null;
+    const addedTs = c.addedAt || (c.added ? c.added+'T00:00:00' : null);
+    const addedDate = addedTs ? new Date(addedTs) : null;
+    const daysPending = addedDate ? Math.floor((today - addedDate)/86400000) : null;
+    const addedLabel = addedTs ? (() => {
+      const d = new Date(addedTs);
+      return d.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})
+        + (c.addedAt ? ' ' + d.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'}) : '');
+    })() : null;
+    const urgencyColor = daysPending===null?'':daysPending>=10?'var(--red)':daysPending>=5?'#F97316':'var(--green-text)';
     const staleBadge = (daysPending!==null && daysPending>=7 && st==='Awaiting')
       ? `<span class="badge b-amber" style="margin-top:3px;font-size:.62rem">⏰ ${daysPending}d pending</span>` : '';
 
     const proofLink=(url,label)=>url?`<a class="proof-link" href="${url}" target="_blank" rel="noopener">📄 ${label}</a>`:'';
     return `<tr>
-      <td><div class="name-cell" style="cursor:pointer;color:var(--navy)" onclick="openProfile('${c.first}','${c.last}')" title="View full profile">${c.first} ${c.last} <span style="font-size:.65rem;color:var(--teal)">↗</span></div>${c.oos==='yes'?'<span class="sub" style="color:#F97316">⚠ Out-of-state</span>':''}${staleBadge?`<div style="margin-top:2px">${staleBadge}</div>`:''}</td>
+      <td><div class="name-cell" style="cursor:pointer;color:var(--navy)" onclick="openProfile('${c.first}','${c.last}')" title="View full profile">${c.first} ${c.last} <span style="font-size:.65rem;color:var(--teal)">↗</span></div>${c.oos==='yes'?'<span class="sub" style="color:#F97316">⚠ Out-of-state</span>':''}${addedLabel?`<span class="sub" style="color:var(--gray)">Added ${addedLabel}</span>`:''}${daysPending!==null&&st==='Awaiting'?`<span class="sub" style="color:${urgencyColor};font-weight:600">${daysPending}d in pipeline</span>`:''}${staleBadge?`<div style="margin-top:2px">${staleBadge}</div>`:''}</td>
       ${[1,2,3,4].map(n=>{
         const s=c[`r${n}s`],nm=c[`r${n}n`],pf=c[`r${n}_proof`],mn=c[`r${n}_manual`];
         const manualTag=mn?`<span class="sub" style="color:var(--teal)">📞 ${mn.via} · ${fmtD(mn.date)||''}${mn.staff?' · '+mn.staff:''}</span>`:'';
@@ -2193,6 +2342,7 @@ function saveOB(){
   // Capture pre-save state
   const oldCand = editingOB ? candidates.find(x=>x.id===editingOB) : null;
   const wasReady = oldCand ? obDeriveStatus(oldCand)==='Ready for Orientation' : false;
+  const wasResolved = oldCand ? (obDeriveStatus(oldCand)==='Ready for Orientation'||obDeriveStatus(oldCand)==='Needs Review') : false;
   const d={first:g('ob-first'),last:g('ob-last'),phone:g('ob-phone'),oos:g('ob-oos'),
     r1n:g('ob-r1n'),r1s:g('ob-r1s'),r1_phone:g('ob-r1-phone'),r1_email:g('ob-r1-email'),
     r2n:g('ob-r2n'),r2s:g('ob-r2s'),r2_phone:g('ob-r2-phone'),r2_email:g('ob-r2-email'),
@@ -2205,10 +2355,17 @@ function saveOB(){
     fp:g('ob-fp'),fp_date:g('ob-fp-date'),fp_proof:g('ob-fp-proof'),notes:g('ob-notes')};
   let saved;
   if(editingOB){ const i=candidates.findIndex(x=>x.id===editingOB); candidates[i]={...candidates[i],...d}; saved=candidates[i]; }
-  else { const rec={id:obId++,...d,invite_sent:false,invite_sent_date:'',added:new Date().toISOString().split('T')[0]}; candidates.push(rec); saved=rec; }
+  else { const rec={id:obId++,...d,invite_sent:false,invite_sent_date:'',addedAt:new Date().toISOString()}; candidates.push(rec); saved=rec; }
+  // Auto-stamp resolvedAt the first time a candidate reaches a terminal status
+  const nowStatus = obDeriveStatus(saved);
+  const nowReady = nowStatus==='Ready for Orientation';
+  if(!wasResolved && (nowStatus==='Ready for Orientation'||nowStatus==='Needs Review')){
+    const idx=candidates.findIndex(x=>x.id===saved.id);
+    candidates[idx].resolvedAt = new Date().toISOString();
+    candidates[idx].resolvedStatus = nowStatus;
+    saved = candidates[idx];
+  }
   saveCandidates(); closeModal('ob-modal'); renderOB(); renderAlerts();
-  // Push to AxisCare if candidate just became Ready for Orientation
-  const nowReady = obDeriveStatus(saved)==='Ready for Orientation';
   if(nowReady && !wasReady){
     pushAxisCareStatus('orientation_ready', {
       first: saved.first, last: saved.last,
@@ -3508,8 +3665,7 @@ function copyBLToClipboard(){
 const EVV_WARN_THRESHOLD    = 5;   // agency-wide yellow
 const EVV_DANGER_THRESHOLD  = 10;  // agency-wide red
 const EVV_ATTENDANT_LIMIT   = 3;   // per-attendant red flag
-// Update this to wherever you host evv-correction-form.html (e.g. your GitHub Pages URL)
-const EVV_FORM_URL = window.location.href.replace(/[^/]*$/, '') + 'evv-correction-form.html';
+const EVV_FORM_URL = 'https://hub.mo-care.com/evv-correction-form';
 
 // ── Storage ──────────────────────────────────────────────────────────
 function getEVVCorrections() {
