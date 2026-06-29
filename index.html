@@ -299,8 +299,8 @@ td{padding:.7rem .9rem;font-size:.83rem;vertical-align:middle}
         <button class="fb" onclick="obFilter('refs',this)">📋 Awaiting References</button>
         <button class="fb" onclick="obFilter('bg',this)">🔍 Pending Background Check</button>
         <button class="fb" onclick="obFilter('review',this)">⚠️ Needs Review</button>
+        <button class="fb" onclick="obFilter('not_hired',this)" style="color:#ef4444;border-color:#fca5a5">🚫 Not Hired</button>
         <button class="fb" onclick="obFilter('stats',this)" style="margin-left:auto">📊 Processing Stats</button>
-        <button class="add-btn" onclick="openOBModal()">+ Add Candidate</button>
       </div>
       <div class="tbl-wrap">
         <table>
@@ -1166,6 +1166,32 @@ td{padding:.7rem .9rem;font-size:.83rem;vertical-align:middle}
   </div>
 </div>
 
+<!-- MODAL: Not Moving Forward -->
+<div class="overlay" id="not-hire-modal">
+  <div class="modal" style="max-width:430px">
+    <h3 style="margin-bottom:.3rem">🚫 Not Moving Forward</h3>
+    <p id="not-hire-name" style="font-size:.9rem;font-weight:600;color:var(--navy);margin-bottom:.25rem"></p>
+    <p style="font-size:.8rem;color:var(--gray);margin-bottom:1.1rem">This candidate will be archived. Their record is kept — you can view and reactivate them at any time using the "Not Hired" filter.</p>
+    <div class="fg">
+      <div class="sect-lbl">Reason</div>
+      <select id="not-hire-reason" style="width:100%;padding:.5rem .75rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.85rem;background:#fff">
+        <option value="">— Select a reason —</option>
+        <option value="background">Background check issue</option>
+        <option value="reference">Reference check concern</option>
+        <option value="noshow">No-show to orientation</option>
+        <option value="withdrew">Candidate withdrew</option>
+        <option value="other">Other</option>
+      </select>
+      <div class="sect-lbl" style="margin-top:.85rem">Notes (optional)</div>
+      <textarea id="not-hire-notes" rows="3" placeholder="Any additional context for your records…" style="width:100%;padding:.5rem .75rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.82rem;resize:vertical;box-sizing:border-box"></textarea>
+    </div>
+    <div style="display:flex;gap:.75rem;justify-content:flex-end;margin-top:1.1rem">
+      <button class="btn" onclick="closeModal('not-hire-modal')" style="background:#eee;color:#333;padding:.5rem 1.1rem">Cancel</button>
+      <button class="btn" onclick="confirmNotHire()" style="background:#EF4444;color:#fff;border:none;padding:.5rem 1.25rem">Archive — Not Hired</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: Onboarding candidate -->
 <div class="overlay" id="ob-modal">
   <div class="modal">
@@ -1397,7 +1423,13 @@ td{padding:.7rem .9rem;font-size:.83rem;vertical-align:middle}
         <label style="font-size:.75rem;font-weight:500;min-width:180px;color:var(--navy)">💾 Candidate Saved (Sync):</label>
         <input type="text" id="settings-zapier-cand" placeholder="https://hooks.zapier.com/hooks/catch/…" style="flex:1;padding:.42rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.75rem">
       </div>
-      <p style="font-size:.68rem;color:var(--gray);margin:0 .5rem">Fires every time a candidate record is saved. Zap should sync to AxisCare applicant + Google Drive sheet.</p>
+      <p style="font-size:.68rem;color:var(--gray);margin:0 0 .6rem .5rem">Fires every time a candidate record is saved. Zap should sync to AxisCare applicant + Google Drive sheet.</p>
+
+      <div style="display:flex;gap:.5rem;align-items:center;margin-bottom:.4rem">
+        <label style="font-size:.75rem;font-weight:500;min-width:180px;color:var(--navy)">🚫 Not Moving Forward (Notify):</label>
+        <input type="text" id="settings-zapier-not-hired" placeholder="https://hooks.zapier.com/hooks/catch/…" style="flex:1;padding:.42rem .7rem;border:1.5px solid var(--border);border-radius:8px;font-family:inherit;font-size:.75rem">
+      </div>
+      <p style="font-size:.68rem;color:var(--gray);margin:0 .5rem">Fires when a candidate is marked as not moving forward. Zap should send them a text and email with a polite notification. <strong>Fields sent:</strong> first, last, phone, email, reason, reason_label, notes, date.</p>
     </div>
 
     <div class="sect-lbl">Staff &amp; Notifications</div>
@@ -2839,7 +2871,9 @@ function renderOB(){
     const n=`${c.first} ${c.last}`.toLowerCase();
     const st=obDeriveStatus(c);
     let matchF=true;
-    if(obFilterVal==='ready')       matchF=st==='Ready for Orientation';
+    if(obFilterVal==='not_hired')   matchF=!!c.not_hired;
+    else if(c.not_hired)            return false; // hide not-hired from all other views
+    else if(obFilterVal==='ready')  matchF=st==='Ready for Orientation';
     else if(obFilterVal==='refs')   matchF=[c.r1s,c.r2s,c.r3s,c.r4s].some(r=>r==='Pending');
     else if(obFilterVal==='bg')     matchF=(!c.oig||c.oig==='Pending')||(!c.edl||c.edl==='Pending')||(!c.fcsr||c.fcsr==='Pending');
     else if(obFilterVal==='review') matchF=st==='Needs Review';
@@ -2883,14 +2917,22 @@ function renderOB(){
       <td><div class="chk"><span class="badge ${c.fcsr==='Clear'?'b-green':c.fcsr==='Issues Found'?'b-red':'b-gray'}">${c.fcsr||'Pending'}</span>${c.fcsr_date?`<span class="chk-date">${fmtD(c.fcsr_date)}</span>`:''}${proofLink(c.fcsr_proof,'View')}</div></td>
       <td><div class="chk">${fpShow?`<span class="badge ${fpBadge}">${c.fp}</span>${c.fp_date?`<span class="chk-date">${fmtD(c.fp_date)}</span>`:''}${proofLink(c.fp_proof,'View')}`:`<span class="badge b-gray">Not required</span>`}</div></td>
       <td>
-        <span class="badge ${stBadge}">${st}</span>
-        ${c.invite_sent?`<br><span class="badge" style="margin-top:4px;background:#e0faf9;color:#0e7490;font-size:.62rem">✉️ Invited ${fmtD(c.invite_sent_date)}</span>`:''}
+        ${c.not_hired?`
+          <span class="badge b-red">🚫 Not Hired</span>
+          ${c.not_hired_reason?`<span class="sub" style="color:#ef4444">${{background:'BG Issue',reference:'Ref Concern',noshow:'No-Show',withdrew:'Withdrew',other:'Other'}[c.not_hired_reason]||c.not_hired_reason}</span>`:''}
+          ${c.not_hired_notes?`<span class="sub" style="color:var(--gray);font-style:italic">${c.not_hired_notes}</span>`:''}
+          ${c.not_hired_date?`<span class="sub" style="color:var(--gray)">${fmtD(c.not_hired_date)}</span>`:''}
+        `:`
+          <span class="badge ${stBadge}">${st}</span>
+          ${c.invite_sent?`<br><span class="badge" style="margin-top:4px;background:#e0faf9;color:#0e7490;font-size:.62rem">✉️ Invited ${fmtD(c.invite_sent_date)}</span>`:''}
+        `}
       </td>
       <td><div class="acts">
+        ${c.not_hired?`<button class="ibtn" onclick="reactivateOB(${c.id})" style="color:var(--teal);border-color:var(--teal)" title="Reactivate candidate">↩ Reactivate</button>`:`
         ${st==='Ready for Orientation'&&!c.invite_sent?`<button class="ibtn" style="background:var(--teal);color:#fff;border-color:var(--teal);font-weight:600;padding:.28rem .65rem;" onclick="openInviteModal(${c.id})">📅 Invite</button>`:''}
         ${st==='Ready for Orientation'&&c.invite_sent?`<button class="ibtn" style="color:var(--teal);border-color:var(--teal);" onclick="openInviteModal(${c.id})">📅 Re-send</button>`:''}
         <button class="ibtn" onclick="openOBModal(${c.id})">✏️</button>
-        <button class="ibtn" onclick="delOB(${c.id})">🗑️</button>
+        <button class="ibtn" onclick="openNotHireModal(${c.id})" style="color:#ef4444;border-color:#fca5a5" title="Not moving forward">🚫</button>`}
       </div></td>
     </tr>`;
   }).join('');
@@ -3294,7 +3336,43 @@ async function confirmSendInvite(){
   candidates[i].invite_sent_date=new Date().toISOString().split('T')[0];
   saveCandidates(); closeModal('invite-modal'); renderOB(); renderAlerts();
 }
-function delOB(id){ const c=candidates.find(x=>x.id===id); if(confirm(`Remove ${c.first} ${c.last}?`)){ candidates=candidates.filter(x=>x.id!==id); saveCandidates(); renderOB(); renderAlerts(); } }
+let _notHireId=null;
+function openNotHireModal(id){
+  const c=candidates.find(x=>x.id===id);
+  if(!c) return;
+  _notHireId=id;
+  document.getElementById('not-hire-name').textContent=`${c.first} ${c.last}`;
+  document.getElementById('not-hire-reason').value='';
+  document.getElementById('not-hire-notes').value='';
+  document.getElementById('not-hire-modal').classList.add('open');
+}
+function confirmNotHire(){
+  const reason=document.getElementById('not-hire-reason').value;
+  if(!reason){ alert('Please select a reason.'); return; }
+  const notes=document.getElementById('not-hire-notes').value.trim();
+  const c=candidates.find(x=>x.id===_notHireId);
+  if(!c){ closeModal('not-hire-modal'); return; }
+  c.not_hired=true;
+  c.not_hired_reason=reason;
+  c.not_hired_notes=notes;
+  c.not_hired_date=new Date().toISOString().split('T')[0];
+  // Notify candidate via Zapier (text + email)
+  const reasonLabels={background:'Background check issue',reference:'Reference check concern',noshow:'No-show to orientation',withdrew:'Candidate withdrew',other:'Other'};
+  zapFire('zapier_not_hired_webhook',{
+    first:c.first, last:c.last, full_name:`${c.first} ${c.last}`,
+    phone:c.phone||'', email:c.email||'',
+    reason, reason_label:reasonLabels[reason]||reason,
+    notes, date:c.not_hired_date
+  }, true);
+  _notHireId=null;
+  saveCandidates(); closeModal('not-hire-modal'); renderOB(); renderAlerts();
+}
+function reactivateOB(id){
+  const c=candidates.find(x=>x.id===id);
+  if(!c||!confirm(`Reactivate ${c.first} ${c.last}? They will return to the active pipeline.`)) return;
+  delete c.not_hired; delete c.not_hired_reason; delete c.not_hired_notes; delete c.not_hired_date;
+  saveCandidates(); renderOB(); renderAlerts();
+}
 
 // ── MANUAL REFERENCE ──────────────────────────────────────────────────
 let _mrefCandId=null, _mrefSlot=null;
@@ -4472,6 +4550,7 @@ function _openSettingsModal(){
   document.getElementById('settings-zapier-orient').value=appSettings.zapier_orient_webhook||'';
   document.getElementById('settings-zapier-attend').value=appSettings.zapier_attend_webhook||'';
   document.getElementById('settings-zapier-cand').value=appSettings.zapier_cand_webhook||'';
+  document.getElementById('settings-zapier-not-hired').value=appSettings.zapier_not_hired_webhook||'';
   document.getElementById('settings-admin-current').value='';
   document.getElementById('settings-admin-new').value='';
   document.getElementById('settings-admin-confirm').value='';
@@ -4579,6 +4658,7 @@ function saveSettings(){
   appSettings.zapier_orient_webhook = document.getElementById('settings-zapier-orient').value.trim();
   appSettings.zapier_attend_webhook = document.getElementById('settings-zapier-attend').value.trim();
   appSettings.zapier_cand_webhook = document.getElementById('settings-zapier-cand').value.trim();
+  appSettings.zapier_not_hired_webhook = document.getElementById('settings-zapier-not-hired').value.trim();
   if(newClientId !== appSettings.google_client_id){
     appSettings.google_client_id = newClientId;
     gdriveTokenClient = null;
