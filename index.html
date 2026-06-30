@@ -623,7 +623,14 @@ td{padding:.7rem .9rem;font-size:.83rem;vertical-align:middle}
         <div id="client-queue-list"></div>
       </div>
 
-      <!-- Scenario SOPs -->
+      <!-- Staffing Instructions -->
+      <div style="display:flex;align-items:center;gap:.65rem;margin-bottom:.75rem;padding:.6rem .9rem;background:var(--navy);border-radius:10px">
+        <span style="font-size:1.15rem">📋</span>
+        <div>
+          <div style="font-size:.92rem;font-weight:700;color:#fff;letter-spacing:-.01em">Staffing Instructions</div>
+          <div style="font-size:.72rem;color:rgba(255,255,255,.65);margin-top:.1rem">Step-by-step guides for common staffing scenarios — click any to expand</div>
+        </div>
+      </div>
       <div style="display:flex;flex-direction:column;gap:.75rem">
 
         <!-- Scenario 1: New Caregiver -->
@@ -701,6 +708,34 @@ td{padding:.7rem .9rem;font-size:.83rem;vertical-align:middle}
             <div class="guide-step"><div class="guide-step-num">3</div><div class="guide-step-body">Follow the <strong>Filling an Open/Dropped Shift</strong> process above to find coverage. Time is critical — start outreach immediately.</div></div>
             <div class="guide-step"><div class="guide-step-num">4</div><div class="guide-step-body">Contact the <strong>client or family</strong> to let them know there has been a change and provide an updated arrival time or confirmation of coverage.</div></div>
             <div class="guide-step"><div class="guide-step-num">5</div><div class="guide-step-body">If the same caregiver has <strong>3 or more call-outs in 30 days</strong>, flag it and notify Samantha for follow-up. Excessive call-outs may need to be addressed through HR.</div></div>
+          </div>
+        </div>
+
+        <!-- Scenario 5: Disciplinary Actions -->
+        <div style="border:1.5px solid #fecaca;border-radius:10px;overflow:hidden">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:.7rem 1rem;background:#fef2f2;cursor:pointer;user-select:none" onclick="this.nextElementSibling.style.display=this.nextElementSibling.style.display==='block'?'none':'block';this.querySelector('.sop-arrow').style.transform=this.nextElementSibling.style.display==='block'?'rotate(180deg)':''">
+            <div style="display:flex;align-items:center;gap:.6rem">
+              <span style="font-size:1.1rem">📝</span>
+              <span style="font-size:.85rem;font-weight:700;color:#b91c1c">Submitting a Disciplinary Action</span>
+            </div>
+            <span class="sop-arrow" style="font-size:.8rem;color:#b91c1c;transition:transform .2s">▼</span>
+          </div>
+          <div style="display:none;padding:.9rem 1rem 1rem;border-top:1px solid #fecaca">
+            <div style="font-size:.75rem;background:#fef2f2;border-radius:6px;padding:.45rem .7rem;color:#b91c1c;margin-bottom:.75rem;font-weight:600">⚠️ Notify Samantha before issuing any disciplinary action. Do not proceed without management awareness.</div>
+            <div class="guide-section-lbl" style="border-top:none;padding-top:0;margin-top:0">Document the incident first</div>
+            <div class="guide-step"><div class="guide-step-num">1</div><div class="guide-step-body">Write down exactly what happened — <strong>date, time, location, what was observed or reported, and who was involved.</strong> Be factual and specific. Do not include opinions or assumptions.</div></div>
+            <div class="guide-step"><div class="guide-step-num">2</div><div class="guide-step-body">Note whether this is a <strong>first offense or a pattern</strong>. Check the caregiver's file or Viventium for any prior documented incidents.</div></div>
+            <div class="guide-step"><div class="guide-step-num">3</div><div class="guide-step-body">If the incident involved a client, <strong>document the client impact separately</strong> and notify the Care Coordinator so the client record can be updated in AxisCare if needed.</div></div>
+            <div class="guide-section-lbl">Notify management &amp; issue the write-up</div>
+            <div class="guide-step"><div class="guide-step-num">4</div><div class="guide-step-body">Notify <strong>Samantha</strong> immediately — share your written incident summary. She will decide whether to issue a verbal warning, written warning, final warning, or termination.</div></div>
+            <div class="guide-step"><div class="guide-step-num">5</div><div class="guide-step-body">Complete the <strong>Disciplinary Action Form</strong> in Viventium (or the paper form if Viventium is not yet active). Include: caregiver name, date of incident, description, type of action, corrective expectation, and consequences if behavior continues.</div></div>
+            <div class="guide-step"><div class="guide-step-num">6</div><div class="guide-step-body">Schedule a <strong>private meeting</strong> with the caregiver to review the write-up in person. They should sign the form acknowledging they received it — a signature is not an agreement, just confirmation of receipt. If they refuse to sign, note that on the form.</div></div>
+            <div class="guide-section-lbl">After the meeting</div>
+            <div class="guide-step"><div class="guide-step-num">7</div><div class="guide-step-body">Upload a copy of the signed form to the caregiver's <strong>file in Viventium</strong>. Keep a physical copy in the HR binder as well.</div></div>
+            <div class="guide-step"><div class="guide-step-num">8</div><div class="guide-step-body">Monitor going forward. If the behavior continues after a written warning, escalate immediately — do not wait. Samantha makes all final termination decisions.</div></div>
+            <div style="margin-top:.75rem;padding:.6rem .8rem;background:#f3f4f6;border-radius:7px;font-size:.75rem;color:var(--gray)">
+              <strong style="color:var(--navy)">Common reasons for disciplinary action:</strong> no-call no-show, repeated late arrivals, EVV non-compliance, unprofessional conduct, client complaint, breach of confidentiality, unauthorized tasks, or falsifying records.
+            </div>
           </div>
         </div>
 
