@@ -1639,6 +1639,20 @@ const SB_URL  = 'https://zngsgedlsxinbygwmxwn.supabase.co';
 const SB_KEY  = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpuZ3NnZWRsc3hpbmJ5Z3dteHduIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1NDIzNDQsImV4cCI6MjA5ODExODM0NH0.L_31_UKdccyRH9n7p1GaBlZTqcJipB008H-GIvxwLxM';
 const sb = supabase.createClient(SB_URL, SB_KEY);
 
+// Fixed slug this hub checks against a signed-in user's app_metadata.hub_access.
+// Must exactly match this hub's row in Team Hub's hub_portals list ("staffing").
+const HUB_SLUG = 'staffing';
+// Real access control lives in Supabase Auth's app_metadata.hub_access. A
+// missing hub_access array means the account predates this system — treat
+// that as grandfathered in rather than denied, so this never locks out the
+// existing team on deploy. Restriction only starts once an owner explicitly
+// sets someone's portal access from Team Hub's Manage Team Access panel.
+function hasHubAccess(user){
+  const access = user && user.app_metadata && user.app_metadata.hub_access;
+  if(access === undefined || access === null) return true;
+  return Array.isArray(access) && access.includes(HUB_SLUG);
+}
+
 // ── Admin passcode — gates Settings access ────────────────────────────
 // Stored in localStorage; set on first use via Settings.
 function getAdminPwd(){ return localStorage.getItem('cc_admin_pwd') || ''; }
@@ -1669,11 +1683,15 @@ async function doLogin(){
     errEl.style.display='block'; return;
   }
   btn.disabled=true; btn.textContent='Signing in…';
-  const { error } = await sb.auth.signInWithPassword({ email, password });
+  const { data, error } = await sb.auth.signInWithPassword({ email, password });
   btn.disabled=false; btn.textContent='Sign In';
   if(error){
     errEl.textContent = error.message === 'Invalid login credentials'
       ? 'Incorrect email or password.' : error.message;
+    errEl.style.display='block';
+  } else if(!hasHubAccess(data.user)){
+    await sb.auth.signOut();
+    errEl.textContent = "You don't have access to Staffing Hub. Contact your owner to be granted access.";
     errEl.style.display='block';
   } else {
     await showApp();
@@ -1703,7 +1721,16 @@ document.getElementById('login-email').addEventListener('keydown',e=>{if(e.key==
 // Auto-restore session on page load
 (async ()=>{
   const { data: { session } } = await sb.auth.getSession();
-  if(session) await showApp();
+  if(session){
+    if(!hasHubAccess(session.user)){
+      await sb.auth.signOut();
+      const errEl = document.getElementById('err');
+      errEl.textContent = "You don't have access to Staffing Hub. Contact your owner to be granted access.";
+      errEl.style.display = 'block';
+      return;
+    }
+    await showApp();
+  }
 })();
 
 // ── OIG Exclusion Check ───────────────────────────────────────────────
